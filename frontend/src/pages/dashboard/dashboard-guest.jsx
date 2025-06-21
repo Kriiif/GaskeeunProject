@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'; // Adjust path
+import {Header} from '@/components/header'; 
 
 const SewaLapanganDashboard = () => {
   const [selectedSport, setSelectedSport] = useState('Badminton');
@@ -62,20 +63,7 @@ const venues = [
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
       {/* Navbar */}
-      <nav className="bg-white shadow-md py-5 px-6 flex justify-between items-center fixed w-full top-0 z-50"> {/* Menaikkan padding vertikal menjadi py-5 */}
-        <div className="flex items-center"> {/* Hapus space-x dan h-12 dari div pembungkus */}
-          <img src="../public/logos/mukaijo.png" className="h-14 w-30 ml-20" /> {/* Terapkan tinggi langsung ke img, h-16 (64px) cocok untuk logo, dan mr-4 untuk spasi */}
-        </div>
-        <div className="flex flex-grow justify-center space-x-8">
-          <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Sewa Lapangan</a>
-          <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Partnership</a>
-        </div>
-        <div className="flex items-center space-x-4 mr-20">
-          <Button variant="ghost" className="font-medium">Masuk</Button>
-          <Button className="bg-green-600 hover:bg-green-700 font-medium">Daftar</Button> {/* Pastikan warna tombol Daftar sesuai keinginan Anda */}
-        </div>
-      </nav>
-
+      <Header />
       {/* Main Content */}
       <div className="container mx-auto p-6 pt-[100px]"> {/* Sesuaikan padding-top agar konten tidak tertutup header yang lebih tinggi */}
         {/* Banner Section */}
