@@ -18,6 +18,17 @@ import {
 } from '@/components/ui/card'; // Adjust path
 import {Header} from '@/components/header'; 
 
+// Import komponen Sheet dari Shadcn UI
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter // Tambahkan jika Anda berencana menggunakan footer di sheet
+} from "@/components/ui/sheet";
+
 const SewaLapanganDashboard = () => {
   const [selectedSport, setSelectedSport] = useState('Badminton');
   const [venueName, setVenueName] = useState('');
@@ -40,7 +51,7 @@ const venues = [
         location: 'Kota Jakarta Barat',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Basket', 'Tenis'],
-        image: 'https://via.placeholder.com/150/FF6347/FFFFFF?text=Venue+Image'
+        image: '../public/venue/tenis.jpg'
     },
     {
         name: 'GOR Kurnia',
@@ -48,7 +59,7 @@ const venues = [
         location: 'Kota Jakarta Timur',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Badminton'],
-        image: 'https://via.placeholder.com/150/FF6347/FFFFFF?text=Venue+Image'
+        image: '../public/venue/badmin1.jpg' 
     },
     {
         name: 'Johar Arena',
@@ -56,14 +67,50 @@ const venues = [
         location: 'Kota Jakarta Pusat',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Futsal'],
-        image: 'https://via.placeholder.com/150/FF6347/FFFFFF?text=Venue+Image'
+        image: '../public/venue/futsal1.jpg' 
     },
 ];
+
+  const [cartItems, setCartItems] = useState([]); // State baru untuk item keranjang
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // State untuk mengontrol Sheet
+
+  // Fungsi untuk menambahkan slot ke keranjang
+  const handleSlotClick = (fieldId, fieldName, slot) => {
+    if (!slot.available) return; // Jangan tambahkan jika tidak tersedia
+
+    const newItem = {
+      slotId: slot.id,
+      fieldId: fieldId,
+      fieldName: fieldName,
+      date: format(selectedDateObject, "dd MMMM yyyy", { locale: id }),
+      time: slot.time,
+      price: slot.price,
+    };
+
+    // Cek apakah slot sudah ada di keranjang
+    const existingItemIndex = cartItems.findIndex(
+      (item) => item.slotId === newItem.slotId && item.fieldId === newItem.fieldId && item.date === newItem.date
+    );
+
+    if (existingItemIndex > -1) {
+      // Jika sudah ada, hapus dari keranjang (toggle)
+      const updatedCart = cartItems.filter((_, index) => index !== existingItemIndex);
+      setCartItems(updatedCart);
+    } else {
+      // Jika belum ada, tambahkan ke keranjang
+      setCartItems([...cartItems, newItem]);
+    }
+  };
+
+  // Fungsi untuk menghapus item dari keranjang
+  const removeFromCart = (slotId, fieldId, date) => {
+    setCartItems(cartItems.filter(item => !(item.slotId === slotId && item.fieldId === fieldId && item.date === date)));
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
       {/* Navbar */}
-      <Header />
+      <Header cartItemCount={cartItems.length} onCartClick={() => setIsSheetOpen(true)} />
       {/* Main Content */}
       <div className="container mx-auto p-6 pt-[100px]"> {/* Sesuaikan padding-top agar konten tidak tertutup header yang lebih tinggi */}
         {/* Banner Section */}
@@ -178,6 +225,47 @@ const venues = [
           ))}
         </div>
       </div>
+        {/* SHADCn Sheet untuk Keranjang */}
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetContent side="right"> {/* side="right" agar muncul dari kanan */}
+            <SheetHeader>
+              <SheetTitle className="text-2xl font-bold">JADWAL DIPILIH</SheetTitle>
+              <SheetDescription className="text-gray-600">
+                Berikut adalah jadwal yang Anda pilih.
+              </SheetDescription>
+            </SheetHeader>
+  
+            {cartItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 text-center">
+                <span className="text-5xl mb-4">🛒</span>
+                <p>Belum ada jadwal di keranjang.</p>
+              </div>
+            ) : (
+              <div className="py-4 space-y-4">
+                {cartItems.map((item) => (
+                  <Card key={`${item.slotId}-${item.date}`} className="p-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-800">{item.fieldName}</p>
+                      <p className="text-sm text-gray-700">{item.date} | {item.time}</p>
+                      <p className="text-md font-bold text-green-700">{item.price}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => removeFromCart(item.slotId, item.fieldId, item.date)} className="text-red-500 hover:text-red-700">
+                      Hapus
+                    </Button>
+                  </Card>
+                ))}
+              </div>
+            )}
+  
+            <SheetFooter className="mt-6 border-t pt-4">
+              {cartItems.length > 0 && (
+                <Button className="bg-green-600 hover:bg-green-700 text-white w-full">
+                  Lanjutkan Pembayaran ({cartItems.length} Slot)
+                </Button>
+              )}
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
     </div>
   );
 };

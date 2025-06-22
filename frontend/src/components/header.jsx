@@ -1,30 +1,31 @@
+// src/components/header.jsx
 import React from "react";
-import { Button } from "@/components/ui/button"; // Pastikan jalur impor sesuai dengan struktur proyek Anda
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCartShopping } from "@fortawesome/free-solid-svg-icons";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"; // Pastikan named import untuk Button
+import { ShoppingCart } from 'lucide-react'; // Import ikon keranjang. Instal: npm install lucide-react
 
-const Header = () => {
+// Header kini menerima props cartItemCount dan onCartClick
+const Header = ({ cartItemCount, onCartClick }) => {
   return (
-    <nav className="bg-white shadow-md py-5 px-6 flex justify-between items-center fixed w-full top-0 z-50"> {/* Menaikkan padding vertikal menjadi py-5 */}
-        <div className="flex items-center"> {/* Hapus space-x dan h-12 dari div pembungkus */}
-            <img src="../public/logos/mukaijo.png" className="max-h-14 max-w-30 max-ml-20" /> {/* Terapkan tinggi langsung ke img, h-16 (64px) cocok untuk logo, dan mr-4 untuk spasi */}
+    <nav className="bg-white shadow-md py-5 px-6 flex justify-between items-center fixed w-full top-0 z-50">
+        <div className="flex items-center">
+            <img src="../public/logos/mukaijo.png" alt="Logo" className="h-14 w-auto ml-20" />
         </div>
         <div className="flex flex-grow justify-center space-x-8">
             <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Sewa Lapangan</a>
             <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Partnership</a>
         </div>
-        <div className="flex items-center space-x-4 max-mr-20">
-            <Button className="bg-white hover:bg-neutral-300" ><FontAwesomeIcon icon={faCartShopping} size="2xl" style={{color: "#000000"}} /></Button>
+        <div className="flex items-center space-x-4 mr-20">
+            {/* Tombol Keranjang */}
+            <Button variant="ghost" className="font-medium relative" onClick={onCartClick}>
+                <ShoppingCart className="h-6 w-6" />
+                {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {cartItemCount}
+                    </span>
+                )}
+            </Button>
             <Button variant="ghost" className="font-medium">Masuk</Button>
-            <Button className="bg-green-600 hover:bg-green-700 font-medium">Daftar</Button> {/* Pastikan warna tombol Daftar sesuai keinginan Anda */}
+            <Button className="bg-green-600 hover:bg-green-700 font-medium">Daftar</Button>
         </div>
     </nav>
   );
