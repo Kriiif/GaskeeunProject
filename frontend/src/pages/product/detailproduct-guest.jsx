@@ -58,7 +58,7 @@ const DetailProductPage = () => {
         id: 2,
         name: "Lapangan 2",
         image: "../public/venue/lapangan2.jpg",
-        availabilityStatus: "3 Lapangan Tersedia",
+        availabilityStatus: "3 Jadwal Tersedia",
         timeSlots: [ // Slot waktu spesifik untuk Lapangan 2
           { id: '2-1800', time: "18:00 - 19:00", available: true, price: "Rp. 50.000" },
           { id: '2-1900', time: "19:00 - 20:00", available: true, price: "Rp. 50.000" },
