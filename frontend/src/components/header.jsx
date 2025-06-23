@@ -2,9 +2,16 @@
 import React from "react";
 import { Button } from "@/components/ui/button"; // Pastikan named import untuk Button
 import { ShoppingCart } from 'lucide-react'; // Import ikon keranjang. Instal: npm install lucide-react
+import { useNavigate } from "react-router-dom";
 
 // Header kini menerima props cartItemCount dan onCartClick
 const Header = ({ cartItemCount, onCartClick }) => {
+    const navigate = useNavigate();
+
+    const handleLogin = () => {
+        navigate("/login");
+    }
+
   return (
     <nav className="bg-white shadow-md py-5 px-6 flex justify-between items-center fixed w-full top-0 z-50">
         <div className="flex items-center">
@@ -24,7 +31,7 @@ const Header = ({ cartItemCount, onCartClick }) => {
                     </span>
                 )}
             </Button>
-            <Button variant="ghost" className="font-medium">Masuk</Button>
+            <Button variant="ghost" className="font-medium" onClick={handleLogin} >Masuk</Button>
             <Button className="bg-green-600 hover:bg-green-700 font-medium">Daftar</Button>
         </div>
     </nav>
