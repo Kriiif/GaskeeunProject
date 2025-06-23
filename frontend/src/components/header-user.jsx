@@ -17,13 +17,13 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
   return (
     <nav className="bg-white shadow-md py-5 px-6 flex justify-between items-center fixed w-full top-0 z-50">
         <div className="flex items-center">
-            <img src="../public/logos/mukaijo.png" alt="Logo" className="h-14 w-auto ml-20" />
+            <img src="../public/logos/mukaijo.png" alt="Logo" className="h-14 w-auto max-ml-20" />
         </div>
         <div className="flex flex-grow justify-center space-x-8">
             <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Sewa Lapangan</a>
             <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Partnership</a>
         </div>
-        <div className="flex items-center space-x-4 mr-40">
+        <div className="flex items-center space-x-4 mr-20 max-mr-40">
             {/* Tombol Keranjang */}
             <Button variant="ghost" className="font-medium relative" onClick={onCartClick}>
                 <ShoppingCart className="h-6 w-6" />
@@ -35,7 +35,7 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
             </Button>
             <DropdownMenu>
                 <DropdownMenuTrigger> {/* asChild agar Button menjadi trigger */}
-                    <Button variant="ghost" className="font-xl p-0 h-auto rounded-full"> {/* Styling button trigger */}
+                    <Button variant="ghost" className="font-xl p-0 h-10 rounded-full"> {/* Styling button trigger */}
                         <User className="h-20 w-20" /> {/* Ikon Profil */}
                     </Button>
                 </DropdownMenuTrigger>

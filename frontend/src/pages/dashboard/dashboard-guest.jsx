@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button'; // Adjust path based on your shadcn setup
 import { Input } from '@/components/ui/input';   // Adjust path
+import { Search, MapPin, Dumbbell } from 'lucide-react';
+
 import {
   Select,
   SelectContent,
@@ -127,32 +129,41 @@ const venues = [
         </div>
 
         {/* Filter Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-wrap gap-4 items-center justify-between">
-          <Input
-            placeholder="Cari Nama Venue"
-            className="flex-1 min-w-[200px]"
-            value={venueName}
-            onChange={(e) => setVenueName(e.target.value)}
-          />
+        <div className="max-w-[980px] bg-white p-6 rounded-lg shadow-md mb-8 flex flex-wrap gap-4 items-center justify-between">
+          <div className="flex items-center min-w[210px]">
+            <Search className="relative left-5 top-2 -translate-y-1/2 text-black-400 w-4 h-4"/>
+            <Input
+              placeholder="Cari Nama Venue"
+              className="pl-8"
+              value={venueName}
+              onChange={(e) => setVenueName(e.target.value)}
+            />
+          </div>
 
-          <Input
-            placeholder="Pilih kota"
-            className="flex-1 min-w-[200px]"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-          />
+          <div className="flex items-center min-w[210px]">
+            <MapPin className="relative left-5 top-2 -translate-y-1/2 text-black-400 w-4 h-4"/>
+            <Input
+              placeholder="Pilih kota"
+              className="pl-8"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+          </div>
 
-          <Select onValueChange={setSportType} value={sportType}>
-            <SelectTrigger className="flex-1 min-w-[200px]">
-              <SelectValue placeholder="Pilih Cabang Olahraga" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Badminton">Badminton</SelectItem>
-              <SelectItem value="Futsal">Futsal</SelectItem>
-              <SelectItem value="Basket">Basket</SelectItem>
-              {/* Add more sports as needed */}
-            </SelectContent>
-          </Select>
+          <div className="flex items-center min-w[210px]">
+            <Select onValueChange={setSportType} value={sportType}>
+              <SelectTrigger>
+                <Dumbbell />
+                <SelectValue placeholder="Pilih Cabang Olahraga" className="pl-0" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Badminton">Badminton</SelectItem>
+                <SelectItem value="Futsal">Futsal</SelectItem>
+                <SelectItem value="Basket">Basket</SelectItem>
+                {/* Add more sports as needed */}
+              </SelectContent>
+            </Select>
+          </div>
 
           <Button className="bg-green-600 hover:bg-green-700 px-6 py-3 font-medium">
             Cari Venue
