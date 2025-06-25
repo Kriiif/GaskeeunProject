@@ -58,7 +58,7 @@ export function LoginForm({
                       .then(res => res.json())
                       .then(data => {
                         console.log("Logged in!", data);
-                        navigate('/dashboard');
+                        navigate('/dashboard-user');
                       });
                     }}
                     onError={() => {

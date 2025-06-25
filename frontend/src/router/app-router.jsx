@@ -9,9 +9,8 @@ export default function AppRouter() {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<SewaLapanganDashboard />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/dashboard-guest" element={<SewaLapanganDashboard />} />
                 <Route path="/dashboard-user" element={<SewaLapanganDashboard1 />} />
                 <Route path="/detailproduct-guest" element={<DetailProductPage />} />
             </Routes>
