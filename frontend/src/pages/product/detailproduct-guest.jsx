@@ -46,7 +46,7 @@ const DetailProductPage = () => {
   // --- Data Produk (Tetap sama) ---
   const product = {
     name: "Johar Arena",
-    mainImage: "../public/carausel/badminton.jpg",
+    mainImage: "/carausel/badminton.jpg",
     sport: "Badminton",
     rating: 4.6,
     location: "Jl. Johar Baru, Kec. Johar Baru, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10560",
@@ -56,7 +56,7 @@ const DetailProductPage = () => {
       {
         id: 1,
         name: "Lapangan 1",
-        image: "../public/venue/jorhar.png",
+        image: "/venue/jorhar.png",
         availabilityStatus: "3 Jadwal Tersedia",
         timeSlots: [
           { id: '1-1800', time: "18:00 - 19:00", available: true, price: "Rp. 50.000" },
@@ -68,7 +68,7 @@ const DetailProductPage = () => {
       {
         id: 2,
         name: "Lapangan 2",
-        image: "../public/venue/jorhar.png",
+        image: "/venue/jorhar.png",
         availabilityStatus: "3 Jadwal Tersedia",
         timeSlots: [
           { id: '2-1800', time: "18:00 - 19:00", available: true, price: "Rp. 50.000" },

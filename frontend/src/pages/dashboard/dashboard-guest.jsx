@@ -45,7 +45,7 @@ const venues = [
         location: 'Kota Jakarta Pusat', // Menyesuaikan agar lebih singkat seperti contoh
         price: { amount: 'Rp 50.000', per: '/ Sesi' }, // Mengubah menjadi objek untuk format harga
         sports: ['Futsal', 'Badminton'], // Menambahkan jenis olahraga
-        image: '../public/venue/jorhar.png' // Placeholder image
+        image: '/venue/jorhar.png' // Placeholder image
     },
     {
         name: 'Vlocity Arena',
@@ -53,7 +53,7 @@ const venues = [
         location: 'Kota Jakarta Barat',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Basket', 'Tenis'],
-        image: '../public/venue/tenis.jpg'
+        image: '/venue/tenis.jpg'
     },
     {
         name: 'GOR Kurnia',
@@ -61,7 +61,7 @@ const venues = [
         location: 'Kota Jakarta Timur',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Badminton'],
-        image: '../public/venue/badmin1.jpg' 
+        image: '/venue/badmin1.jpg' 
     },
     {
         name: 'Johar Arena',
@@ -69,7 +69,7 @@ const venues = [
         location: 'Kota Jakarta Pusat',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Futsal'],
-        image: '../public/venue/futsal1.jpg' 
+        image: '/venue/futsal1.jpg' 
     },
 ];
 
@@ -118,7 +118,7 @@ const venues = [
         {/* Banner Section */}
         <div className="relative bg-white rounded-lg shadow-md overflow-hidden mb-8 mt-4"> {/* Menambahkan margin-top */}
           <img
-            src="../public/carausel/badminton.jpg" // Placeholder for badminton court image
+            src="/carausel/badminton.jpg" // Placeholder for badminton court image
             alt="Badminton Court"
             className="w-full h-84 object-cover"
           />
