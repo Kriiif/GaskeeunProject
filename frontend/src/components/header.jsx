@@ -15,7 +15,7 @@ const Header = ({ cartItemCount, onCartClick }) => {
   return (
     <nav className="bg-white shadow-md py-5 px-6 flex justify-between items-center fixed w-full top-0 z-50">
         <div className="flex items-center">
-            <img src="../public/logos/mukaijo.png" alt="Logo" className="max-h-14 w-auto max-ml-20" />
+            <img src="/logos/mukaijo.png" alt="Logo" className="max-h-14 w-auto max-ml-20" />
         </div>
         <div className="flex flex-grow justify-center space-x-8">
             <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Sewa Lapangan</a>
