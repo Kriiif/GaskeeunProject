@@ -44,7 +44,7 @@ const KelolaLapanganDashboard = () => {
             {
                 id: 'lapangan1',
                 name: 'Lapangan 1',
-                image: '../public/venue/badmin1.jpg',
+                image: '/venue/badmin1.jpg',
                 sport: 'Badminton',
                 rating: 4.5,
                 location: 'Jl. Contoh No. 123',
@@ -60,7 +60,7 @@ const KelolaLapanganDashboard = () => {
             {
                 id: 'lapangan2',
                 name: 'Lapangan 2',
-                image: '../public/venue/badmin1.jpg',
+                image: '/venue/badmin1.jpg',
                 sport: 'Badminton',
                 rating: 4.2,
                 location: 'Jl. Contoh No. 456',
@@ -186,7 +186,7 @@ const KelolaLapanganDashboard = () => {
                     <div className="flex items-center justify-between mb-8 lg:justify-center">
                         <div className="flex items-center">
                             <img
-                                src="../public/logos/mukaijo.png"
+                                src="/logos/mukaijo.png"
                                 alt="Mukaijo Logo"
                             />
                         </div>

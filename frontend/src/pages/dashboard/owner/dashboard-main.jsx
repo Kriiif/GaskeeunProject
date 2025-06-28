@@ -59,7 +59,7 @@ const DashboardPemilikVenue = () => {
                     <div className="flex items-center justify-between mb-8 lg:justify-center">
                         <div className="flex items-center">
                             <img
-                                src="../public/logos/mukaijo.png"
+                                src="/logos/mukaijo.png"
                                 alt="Mukaijo Logo"
                             />
                         </div>
