@@ -225,6 +225,7 @@ const DetailProductPage = () => {
                   onSelect={setSelectedDateObject}
                   initialFocus
                   locale={id}
+                  disabled={date => date < new Date()}
                 />
               </PopoverContent>
             </Popover>
@@ -267,7 +268,7 @@ const DetailProductPage = () => {
                             disabled={!slot.available}
                           >
                             {slot.time}
-                            {slot.price && <div className="text-xs font-normal mt-1">{slot.price}</div>}
+                            {slot.price && <div className="text-xs font-normal mt-1"></div>}
                           </Button>
                         );
                       })}
