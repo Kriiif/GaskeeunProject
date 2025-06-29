@@ -7,6 +7,8 @@ import KelolaLapanganDashboard from '@/pages/dashboard/owner/dashboard-kelolaven
 import LoginPage from '@/pages/auth/login'
 import DashboardPemilikVenue from '../pages/dashboard/owner/dashboard-main'
 import PartnershipPage from '../pages/product/partnership'
+import DashboardOrder from '../pages/dashboard/owner/dashboard-order'
+import Verification from '../pages/auth/verif'
 
 export default function AppRouter() {
     return (
@@ -15,6 +17,7 @@ export default function AppRouter() {
                 {/* dashboard-guest di set sebagai root */}
                 <Route path="/" element={<SewaLapanganDashboard />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/verification" element={<Verification />} />
                 <Route path="/detailproduct-guest" element={<DetailProductPage />} />
                 <Route path="/partnership" element={<PartnershipPage />} />
 
@@ -24,6 +27,7 @@ export default function AppRouter() {
                 {/* route halaman untuk pemilik venue */}
                 <Route path="/dashboard-kelolavenue" element={<KelolaLapanganDashboard />} />
                 <Route path="/dashboard-main" element={<DashboardPemilikVenue />} />
+                <Route path="/dashboard-order" element={<DashboardOrder />} />
             </Routes>
         </Router>
     )

@@ -18,8 +18,17 @@ const Header = ({ cartItemCount, onCartClick }) => {
             <img src="/logos/mukaijo.png" alt="Logo" className="max-h-14 w-auto max-ml-20" />
         </div>
         <div className="flex flex-grow justify-center space-x-8">
-            <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Sewa Lapangan</a>
-            <a href="#" className="text-gray-700 hover:text-green-600 font-medium text-center">Partnership</a>
+            <button className="text-gray-700 hover:text-green-600 font-medium text-center" onClick={() => {
+                    navigate('/dashboard-user')
+                }}>Sewa Lapangan</button>
+            <button 
+                className="text-gray-700 hover:text-green-600 font-medium text-center"
+                onClick={() => {
+                    navigate('/partnership')
+                }}
+            >
+                Partnership
+            </button>
         </div>
         <div className="flex items-center space-x-4 max-mr-20">
             {/* Tombol Keranjang */}

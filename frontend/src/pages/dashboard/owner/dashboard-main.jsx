@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input'; // Import the Input component
-import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, TrendingUp } from 'lucide-react'; // Import TrendingUp
-import { useNavigate } from 'react-router-dom'; // Add this import
+import { Input } from '@/components/ui/input';
+import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import  CustomSidebar  from '@/components/sidebar'; // Import DropdownMenuItem
 
 const DashboardPemilikVenue = () => {
     const [activeMenuItem, setActiveMenuItem] = useState('Dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [searchQuery, setSearchQuery] = useState(''); // Add state for search query
-    const navigate = useNavigate(); // Initialize useNavigate hook
+    const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
 
     // Sample data for statistics
     const stats = {
@@ -38,6 +39,18 @@ const DashboardPemilikVenue = () => {
         }).format(amount);
     };
 
+    // handleLogout and handleChangePassword functions can stay here
+    // as they define actions within the dashboard context or trigger navigations.
+    const handleLogout = () => {
+        console.log("Logging out...");
+        navigate('/login');
+    };
+
+    const handleChangePassword = () => {
+        console.log("Changing password...");
+        navigate('/verification');
+    };
+
     return (
         <div className="flex min-h-screen bg-gray-100 font-sans relative">
             {/* Overlay for mobile when sidebar is open */}
@@ -48,71 +61,13 @@ const DashboardPemilikVenue = () => {
                 />
             )}
 
-            {/* Sidebar */}
-            <aside className={`
-                bg-white flex flex-col justify-between fixed h-full z-50 transition-transform duration-300 ease-in-out
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                w-64 shadow-lg
-            `}>
-                <div className="p-4">
-                    {/* Close button for mobile */}
-                    <div className="flex items-center justify-between mb-8 lg:justify-center">
-                        <div className="flex items-center">
-                            <img
-                                src="/logos/mukaijo.png"
-                                alt="Mukaijo Logo"
-                            />
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="lg:hidden"
-                            onClick={() => setIsSidebarOpen(false)}
-                        >
-                            <X className="h-5 w-5" />
-                        </Button>
-                    </div>
-                    <nav className="space-y-2">
-                        <Button
-                            variant={activeMenuItem === 'Dashboard' ? 'default' : 'ghost'}
-                            className="w-full justify-start text-lg px-4 py-3"
-                            onClick={() => {
-                                    setActiveMenuItem('Dashboard')
-                                    navigate('/dashboard-main'); // Navigate to the main dashboard
-                                }
-                            }    
-                        >
-                            <Home className="mr-3 h-5 w-5" /> Dashboard
-                        </Button>
-                        <Button
-                            variant={activeMenuItem === 'Kelola Lapangan' ? 'default' : 'ghost'}
-                            className="w-full justify-start text-lg px-4 py-3"
-                            onClick={() => {
-                                setActiveMenuItem('Order');
-                                navigate('/dashboard-kelolavenue'); // Navigate to the venue management page
-                            }}
-                        >
-                            <List className="mr-3 h-5 w-5" /> Kelola Lapangan
-                        </Button>
-                        <Button
-                            variant={activeMenuItem === 'Order' ? 'default' : 'ghost'}
-                            className="w-full justify-start text-lg px-4 py-3"
-                            onClick={() => setActiveMenuItem('Order')}
-                        >
-                            <ShoppingCart className="mr-3 h-5 w-5" /> Order
-                        </Button>
-                    </nav>
-                </div>
-
-                <div className="p-4 border-t border-gray-200 text-center">
-                    <User className="h-12 w-12 mx-auto mb-2 text-gray-700" />
-                    <p className="font-semibold text-gray-800">Uchiha Asep</p>
-                    <p className="text-sm text-gray-500">asepAsoy@gmail.com</p>
-                    <div className="mt-2 text-gray-600 cursor-pointer hover:text-gray-900 transition-colors duration-200">
-                        <List className="h-5 w-5 inline-block" />
-                    </div>
-                </div>
-            </aside>
+            {/* Render the Sidebar component and pass props */}
+            <CustomSidebar
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+                activeMenuItem={activeMenuItem}
+                setActiveMenuItem={setActiveMenuItem}
+            />
 
             {/* Main Content Area */}
             <div className={`
@@ -129,7 +84,7 @@ const DashboardPemilikVenue = () => {
                         >
                             <Menu className="h-6 w-6" />
                         </Button>
-                        
+
                         {/* Search Bar */}
                         <div className="relative flex items-center w-full max-w-md mx-4">
                             <Search className="absolute left-3 h-5 w-5 text-gray-400" />
@@ -141,7 +96,7 @@ const DashboardPemilikVenue = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        
+
                         <Button variant="ghost" className="p-2 h-auto hover:bg-gray-100">
                             <Bell className="h-6 w-6" />
                         </Button>
@@ -158,7 +113,7 @@ const DashboardPemilikVenue = () => {
                         <div className="relative z-10">
                             <h2 className="text-3xl font-bold mb-2">Selamat Datang</h2>
                             <h3 className="text-2xl font-semibold mb-2">di Dashboard Pemilik Venue</h3>
-                            <p className="text-green-100">Kelola semua lapangan Anda dengan mudah dan efisien</p>
+                            <p className="text-green-100">Kelola Venue anda dengan mudah dan efisien</p>
                         </div>
                     </div>
 
