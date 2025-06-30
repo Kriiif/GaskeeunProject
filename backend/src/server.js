@@ -2,36 +2,39 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import { PrismaClient } from '@prisma/client'
-import userRoutes from './routes/users.js'
-import postRoutes from './routes/posts.js'
-import authRoutes from './routes/auth.js'
+import userRoutes from './routes/user.routes.js'
+import postRoutes from './routes/post.routes.js'
+import authRoutes from './routes/auth.routes.js'
+import { PORT } from './config/env.js'
+import connectToDatabase from './database/mongodb.js'
+
 
 dotenv.config()
 
 const app = express()
 const prisma = new PrismaClient()
-const PORT = process.env.PORT || 3000
+const PORTS = PORT || 3000
 
 // Middleware
 app.use(cors())
 app.use(express.json())
 
 // Routes
-app.use('/api/auth', authRoutes)
-app.use('/api/users', userRoutes)
-app.use('/api/posts', postRoutes)
+app.use('/api/v1/auth', authRoutes)
+app.use('/api/v1/users', userRoutes)
+app.use('/api/v1/posts', postRoutes)
 
 app.get('/', (req, res) => {
+  console.log(`${PORT}`)
   res.json({ 
-    message: 'Express + Prisma + MongoDB Server Running!',
+    message: 'Server is Running!',
     timestamp: new Date().toISOString()
   })
 })
 
 // Health check
-app.get('/health', async (req, res) => {
+app.get('/health', (req, res) => {
   try {
-    await prisma.$connect()
     res.json({ status: 'healthy', database: 'connected' })
   } catch (error) {
     res.status(500).json({ status: 'unhealthy', database: 'disconnected' })
@@ -39,13 +42,13 @@ app.get('/health', async (req, res) => {
 })
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
+app.listen(PORTS, async () => {
+  console.log(`Server running on http://localhost:${PORTS}`)
+  await connectToDatabase();
 })
 
 // Graceful shutdown
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   console.log('Shutting down gracefully...')
-  await prisma.$disconnect()
   process.exit(0)
 })
