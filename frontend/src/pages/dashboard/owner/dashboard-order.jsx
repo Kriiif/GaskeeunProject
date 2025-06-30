@@ -6,6 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Home, List, ShoppingCart, User, Menu, Bell, Search, Filter, X, Calendar, MapPin, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // Add this import
 import  CustomSidebar  from '@/components/sidebar'; // Import DropdownMenuItem
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
 
 const DashboardOrder = () => {
     const [activeMenuItem, setActiveMenuItem] = useState('Order');
@@ -13,6 +21,17 @@ const DashboardOrder = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [venueFilter, setVenueFilter] = useState('all');
+    const [orderDetail, setOrderDetail] = useState(null);
+    const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+    const [detail, seeDetail] = useState({
+        id: '',
+        date: '',
+        customer: '',
+        venueId: '',
+        totalPrice: '',
+        method: '',
+        status: '',
+    })
     const navigate = useNavigate(); // Initialize useNavigate hook
 
     // Sample orders data
@@ -22,8 +41,8 @@ const DashboardOrder = () => {
             customer: 'Pham Hanni',
             venueId: 'Lapangan 1',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'confirmed',
+            session: '10.00 - 11.00',
+            method: 'BCA',
             phone: '081234567890',
             totalPrice: 'Rp 150.000'
         },
@@ -32,8 +51,8 @@ const DashboardOrder = () => {
             customer: 'Heru Budi',
             venueId: 'Lapangan 2',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'pending',
+            session: '10.00 - 11.00',
+            method: 'BNI',
             phone: '081234567891',
             totalPrice: 'Rp 150.000'
         },
@@ -42,8 +61,8 @@ const DashboardOrder = () => {
             customer: 'Pham Minji',
             venueId: 'Lapangan 1',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'confirmed',
+            session: '10.00 - 11.00',
+            method: 'Mandiri',
             phone: '081234567892',
             totalPrice: 'Rp 150.000'
         },
@@ -52,8 +71,8 @@ const DashboardOrder = () => {
             customer: 'Pham Uri',
             venueId: 'Lapangan 1',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'cancelled',
+            session: '10.00 - 11.00',
+            method: 'Bank Jago',
             phone: '081234567893',
             totalPrice: 'Rp 150.000'
         },
@@ -62,8 +81,8 @@ const DashboardOrder = () => {
             customer: 'Pham Haerin',
             venueId: 'Lapangan 2',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'confirmed',
+            session: '10.00 - 11.00',
+            method: 'Bank Miun',
             phone: '081234567894',
             totalPrice: 'Rp 150.000'
         },
@@ -72,8 +91,8 @@ const DashboardOrder = () => {
             customer: 'Pham Haerin',
             venueId: 'Lapangan 2',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'pending',
+            session: '10.00 - 11.00',
+            method: 'BCA',
             phone: '081234567895',
             totalPrice: 'Rp 150.000'
         },
@@ -82,8 +101,8 @@ const DashboardOrder = () => {
             customer: 'Pham Haerin',
             venueId: 'Lapangan 2',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'confirmed',
+            session: '10.00 - 11.00',
+            method: 'BNI',
             phone: '081234567896',
             totalPrice: 'Rp 150.000'
         },
@@ -92,8 +111,8 @@ const DashboardOrder = () => {
             customer: 'Pham Haerin',
             venueId: 'Lapangan 2',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'confirmed',
+            session: '10.00 - 11.00',
+            method: 'Bank Jago',
             phone: '081234567897',
             totalPrice: 'Rp 150.000'
         },
@@ -102,8 +121,8 @@ const DashboardOrder = () => {
             customer: 'Pham Haerin',
             venueId: 'Lapangan 2',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'cancelled',
+            session: '10.00 - 11.00',
+            method: 'Bank Miun',
             phone: '081234567898',
             totalPrice: 'Rp 150.000'
         },
@@ -112,8 +131,8 @@ const DashboardOrder = () => {
             customer: 'Pham Haerin',
             venueId: 'Lapangan 2',
             date: '26 June 2025',
-            session: '10.00-11.00',
-            status: 'pending',
+            session: '10.00 - 11.00',
+            method: 'Bank Saleh',
             phone: '081234567899',
             totalPrice: 'Rp 150.000'
         }
@@ -130,6 +149,18 @@ const DashboardOrder = () => {
         
         return matchesSearch && matchesStatus && matchesVenue;
     });
+
+    // function for handle order detail
+    const handleDetailClick = (order) => {
+        setOrderDetail(order);
+        seeDetail({
+            date: order.date,
+            customer: order.customer,
+            venueId: order.venueId,
+            status: order.status
+        });
+        setIsDetailDialogOpen(true);
+    };
 
     return (
         <div className="flex min-h-screen bg-gray-100 font-sans relative">
@@ -226,12 +257,13 @@ const DashboardOrder = () => {
                             <table className="w-full">
                                 <thead className="bg-gray-50 border-b border-gray-200 justify-center">
                                     <tr>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Order ID</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Customer</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Venue</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Session</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Total</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Order ID</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Customer</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Venue</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Date</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Session</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Total</th>
+                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Transaction <br /> Detail</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
@@ -256,6 +288,9 @@ const DashboardOrder = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm font-semibold text-gray-900">{order.totalPrice}</td>
+                                            <td className="px-6 py-4"><button 
+                                                onClick={() => handleDetailClick(order)} className='py-2 px-5 text-sm font-semibold text-white bg-red-500 rounded hover:bg-red-700'>Detail</button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -272,6 +307,105 @@ const DashboardOrder = () => {
                     </Card>
                 </div>
             </div>
+
+            {/* Dialog Detail transaksi */}
+            <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Detail Transaksi</DialogTitle>
+                        <DialogDescription>
+                            Berikut ini adalah detail transaksi penyewaan venue
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-4">
+                        {/* Nama */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="customer" className="text-right font-medium">
+                                Nama
+                            </label>
+                            <Input
+                                id="customer"
+                                name="customer"
+                                value={orderDetail?.customer || ''}
+                                readOnly
+                                className="col-span-3 bg-gray-100 cursor-not-allowed"
+                            />
+                        </div>
+
+                        {/* Lokasi */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="venueId" className="text-right font-medium">
+                                Lokasi
+                            </label>
+                            <Input
+                                id="venueId"
+                                name="venueId"
+                                value={orderDetail?.venueId || ''}
+                                readOnly
+                                className="col-span-3 bg-gray-100 cursor-not-allowed"
+                            />
+                        </div>
+
+                        {/* Status */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="status" className="text-right font-medium">
+                                Metode <br /> Pembayaran
+                            </label>
+                            <Input
+                                id="method"
+                                name="method"
+                                value={orderDetail?.method || ''}
+                                readOnly
+                                className="col-span-3 py-2 px-3 bg-gray-100 rounded text-sm font-medium text-left cursor-not-allowed"
+                            />
+                        </div>
+
+                        {/* Tanggal */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="date" className="text-right font-medium">
+                                Tanggal
+                            </label>
+                            <Input
+                                id="date"
+                                name="date"
+                                value={orderDetail?.date || ''}
+                                readOnly
+                                className="col-span-3 bg-gray-100 cursor-not-allowed"
+                            />
+                        </div>
+
+                        {/* Sesi */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="session" className="text-right font-medium">
+                                Sesi
+                            </label>
+                            <Input
+                                id="session"
+                                name="session"
+                                value={orderDetail?.session || ''}
+                                readOnly
+                                className="col-span-3 bg-gray-100 cursor-not-allowed"
+                            />
+                        </div>
+
+                        {/* Total Harga */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="totalPrice" className="text-right font-medium">
+                                Total
+                            </label>
+                            <Input
+                                id="totalPrice"
+                                name="totalPrice"
+                                value={orderDetail?.totalPrice || ''}
+                                readOnly
+                                className="col-span-3 bg-gray-100 cursor-not-allowed"
+                            />
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 };

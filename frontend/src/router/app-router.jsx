@@ -6,9 +6,10 @@ import DetailProductPage from '@/pages/product/detailproduct-guest'
 import KelolaLapanganDashboard from '@/pages/dashboard/owner/dashboard-kelolavenue'
 import LoginPage from '@/pages/auth/login'
 import DashboardPemilikVenue from '../pages/dashboard/owner/dashboard-main'
-import PartnershipPage from '../pages/product/partnership'
+import PartnershipPageUser from '../pages/product/partnership-user'
 import DashboardOrder from '../pages/dashboard/owner/dashboard-order'
 import Verification from '../pages/auth/verif'
+import PartnershipPage from '../pages/product/partnership-guest'
 
 export default function AppRouter() {
     return (
@@ -19,10 +20,11 @@ export default function AppRouter() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/verification" element={<Verification />} />
                 <Route path="/detailproduct-guest" element={<DetailProductPage />} />
-                <Route path="/partnership" element={<PartnershipPage />} />
+                <Route path="/partnership-guest" element={<PartnershipPage />} />
 
                 {/* route halaman untuk user */}
                 <Route path="/dashboard-user" element={<SewaLapanganDashboard1 />} />
+                <Route path="/partnership-user" element={<PartnershipPageUser />} />
 
                 {/* route halaman untuk pemilik venue */}
                 <Route path="/dashboard-kelolavenue" element={<KelolaLapanganDashboard />} />
