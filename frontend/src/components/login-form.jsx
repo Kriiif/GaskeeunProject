@@ -50,7 +50,7 @@ export function LoginForm({
                 </Button>
                 <GoogleLogin
                     onSuccess={(credentialResponse) => {
-                      fetch('http://localhost:3000/api/auth/login-google', {
+                      fetch('http://localhost:3000/api/v1/auth/login-google', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ token: credentialResponse.credential })
