@@ -21,6 +21,8 @@ const DashboardKelolaAjuan = () => {
   const [applyDetail, setApplyDetail] = useState(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
+  // untuk 
+
   const [recentApply, setRecentApply] = useState([
     {
       id: '1',

@@ -1,6 +1,6 @@
 import React from 'react'; // No need for useState here, as states will be passed via props
 import { Button } from '@/components/ui/button';
-import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, TrendingUp } from 'lucide-react';
+import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, TrendingUp, ScrollText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CustomDropdownOwner from '@/components/dropdown-owner';
 
@@ -53,10 +53,19 @@ const CustomSidebarSuperAdmin = ({ isSidebarOpen, setIsSidebarOpen, activeMenuIt
                     >
                         <List className="mr-3 h-5 w-5" /> Kelola Pengajuan
                     </Button>
+                    <Button
+                        variant={activeMenuItem === 'Daftar Pemilik Venue' ? 'default' : 'ghost'}
+                        className="w-full justify-start text-lg px-4 py-3"
+                        onClick={() => {
+                            setActiveMenuItem('Daftar Pemilik Venue'); // Corrected from 'Order' to 'Kelola Lapangan'
+                            navigate('/dashboard-listOwner');
+                        }}
+                    >
+                        <ScrollText className="mr-3 h-5 w-5" /> Daftar Pemilik Venue
+                    </Button>
                     
                 </nav>
             </div>
-            <CustomDropdownOwner />
         </aside>
     );
 }

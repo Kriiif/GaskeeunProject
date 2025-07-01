@@ -1,28 +1,31 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
-import { PrismaClient } from '@prisma/client'
 import userRoutes from './routes/user.routes.js'
 import postRoutes from './routes/post.routes.js'
 import authRoutes from './routes/auth.routes.js'
 import { PORT } from './config/env.js'
 import connectToDatabase from './database/mongodb.js'
+import errorMiddleware from './middlewares/error.middleware.js'
+import cookieParser from 'cookie-parser'
 
 
 dotenv.config()
 
 const app = express()
-const prisma = new PrismaClient()
 const PORTS = PORT || 3000
 
 // Middleware
 app.use(cors())
 app.use(express.json())
+app.use(cookieParser())
 
 // Routes
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/posts', postRoutes)
+
+app.use(errorMiddleware)
 
 app.get('/', (req, res) => {
   console.log(`${PORT}`)
