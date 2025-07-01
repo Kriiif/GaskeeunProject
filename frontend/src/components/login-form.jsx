@@ -9,15 +9,51 @@ import { Label } from "@/components/ui/label"
 
 export function LoginForm({ className, ...props }) {
   const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+  })
   const [errMsg, setErrMsg] = useState("")
+
+  const handleChange = (e) => {
+    setErrMsg("")
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value
+    })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      const res = await fetch("http://localhost:3000/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        setErrMsg(data.message || "Login failed")
+        return
+      }
+
+      const data = await res.json()
+      console.log("Logged in!", data)
+      navigate("/dashboard-user")
+
+    } catch (error) {
+      setErrMsg(error.message || "Login failed")
+      console.error("Login failed:", error)
+    }
+  }
+
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
-          {errMsg && (
-            <p className="text-red-500 text-sm text-center">{errMsg}</p>
-          )}
           <form className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
@@ -26,7 +62,7 @@ export function LoginForm({ className, ...props }) {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" required />
+                <Input id="email" type="email" onChange={handleChange} value={formData.email} placeholder="m@example.com" required />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
@@ -35,9 +71,12 @@ export function LoginForm({ className, ...props }) {
                     Forgot your password?
                   </a> */}
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" onChange={handleChange} value={formData.password} required />
               </div>
-              <Button type="submit" className="w-full">
+              {errMsg && (
+                <p className="text-red-500 text-sm text-center">{errMsg}</p>
+              )}
+              <Button type="submit" onClick={handleSubmit} className="w-full">
                 Login
               </Button>
               <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
