@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button'; // Adjust path based on your shadcn setup
-import { Input } from '@/components/ui/input';   // Adjust path
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Search, MapPin, Dumbbell } from 'lucide-react';
 
 import {
@@ -9,7 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'; // Adjust path
+} from '@/components/ui/select';
 import {
   Card,
   CardContent,
@@ -17,8 +17,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'; // Adjust path
-import {Header} from '@/components/header'; 
+} from '@/components/ui/card';
+import {Header} from '@/components/header';
 
 // Import komponen Sheet dari Shadcn UI
 import {
@@ -27,9 +27,19 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
-  SheetFooter // Tambahkan jika Anda berencana menggunakan footer di sheet
+  SheetFooter
 } from "@/components/ui/sheet";
+
+// Import Carousel components from shadcn/ui
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  // Hapus CarouselNext dan CarouselPrevious di sini
+} from "@/components/ui/carousel";
+
+// Import Autoplay plugin
+import Autoplay from "embla-carousel-autoplay"; //
 
 const SewaLapanganDashboard = () => {
   const [selectedSport, setSelectedSport] = useState('Badminton');
@@ -42,10 +52,10 @@ const venues = [
     {
         name: 'Jonhar Arena',
         rating: 5.0,
-        location: 'Kota Jakarta Pusat', // Menyesuaikan agar lebih singkat seperti contoh
-        price: { amount: 'Rp 50.000', per: '/ Sesi' }, // Mengubah menjadi objek untuk format harga
-        sports: ['Futsal', 'Badminton'], // Menambahkan jenis olahraga
-        image: '/venue/jorhar.png' // Placeholder image
+        location: 'Kota Jakarta Pusat',
+        price: { amount: 'Rp 50.000', per: '/ Sesi' },
+        sports: ['Futsal', 'Badminton'],
+        image: '/venue/jorhar.png'
     },
     {
         name: 'Vlocity Arena',
@@ -61,7 +71,7 @@ const venues = [
         location: 'Kota Jakarta Timur',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Badminton'],
-        image: '/venue/badmin1.jpg' 
+        image: '/venue/badmin1.jpg'
     },
     {
         name: 'Johar Arena',
@@ -69,42 +79,50 @@ const venues = [
         location: 'Kota Jakarta Pusat',
         price: { amount: 'Rp 50.000', per: '/ Sesi' },
         sports: ['Futsal'],
-        image: '/venue/futsal1.jpg' 
+        image: '/venue/futsal1.jpg'
     },
 ];
 
-  const [cartItems, setCartItems] = useState([]); // State baru untuk item keranjang
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // State untuk mengontrol Sheet
+  const carouselImages = [
+    { src: '/carausel/badmintoncourt.jpg', alt: 'Badminton Court', title: 'Badminton' },
+    { src: '/carausel/futsalcourt.jpg', alt: 'Futsal Court', title: 'Futsal' },
+    { src: '/carausel/basketcourt.jpg', alt: 'Basketball Court', title: 'Basket' },
+    { src: '/carausel/tenniscourt.jpg', alt: 'Tennis Court', title: 'Tenis' },
+  ];
 
-  // Fungsi untuk menambahkan slot ke keranjang
+  const [cartItems, setCartItems] = useState([]);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // Fungsi untuk menambahkan slot ke keranjang (assuming selectedDateObject and format/id are defined elsewhere)
   const handleSlotClick = (fieldId, fieldName, slot) => {
-    if (!slot.available) return; // Jangan tambahkan jika tidak tersedia
+    if (!slot.available) return;
+
+    // Placeholder for selectedDateObject and format/id, replace with actual logic if available
+    const selectedDateObject = new Date(); // Example, replace with actual date object
+    const format = (date, formatStr) => date.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }); // Example
+    const id = {}; // Example, replace with actual locale data
 
     const newItem = {
       slotId: slot.id,
       fieldId: fieldId,
       fieldName: fieldName,
-      date: format(selectedDateObject, "dd MMMM yyyy", { locale: id }),
+      date: format(selectedDateObject, "dd MMMM yyyy", { locale: id }), // Use correct format string
       time: slot.time,
       price: slot.price,
     };
 
-    // Cek apakah slot sudah ada di keranjang
     const existingItemIndex = cartItems.findIndex(
       (item) => item.slotId === newItem.slotId && item.fieldId === newItem.fieldId && item.date === newItem.date
     );
 
     if (existingItemIndex > -1) {
-      // Jika sudah ada, hapus dari keranjang (toggle)
       const updatedCart = cartItems.filter((_, index) => index !== existingItemIndex);
       setCartItems(updatedCart);
     } else {
-      // Jika belum ada, tambahkan ke keranjang
       setCartItems([...cartItems, newItem]);
     }
   };
 
-  // Fungsi untuk menghapus item dari keranjang
   const removeFromCart = (slotId, fieldId, date) => {
     setCartItems(cartItems.filter(item => !(item.slotId === slotId && item.fieldId === fieldId && item.date === date)));
   };
@@ -114,18 +132,39 @@ const venues = [
       {/* Navbar */}
       <Header cartItemCount={cartItems.length} onCartClick={() => setIsSheetOpen(true)} />
       {/* Main Content */}
-      <div className="container mx-auto p-6 pt-[100px]"> {/* Sesuaikan padding-top agar konten tidak tertutup header yang lebih tinggi */}
-        {/* Banner Section */}
-        <div className="relative bg-white rounded-lg shadow-md overflow-hidden mb-8 mt-4"> {/* Menambahkan margin-top */}
-          <img
-            src="/carausel/badminton.jpg" // Placeholder for badminton court image
-            alt="Badminton Court"
-            className="w-full h-84 object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
-          <div className="absolute bottom-4 left-6 text-white">
-            <h2 className="text-3xl font-bold">Badminton</h2>
-          </div>
+      <div className="container mx-auto p-6 pt-[100px]">
+        <div className="relative mb-8 mt-4">
+          <Carousel
+            className="w-full"
+            plugins={[
+              Autoplay({
+                delay: 3000, 
+                stopOnInteraction: false, 
+                stopOnMouseEnter: true, 
+              }),
+            ]}
+            opts={{
+              loop: true, 
+            }}
+          >
+            <CarouselContent>
+              {carouselImages.map((item, index) => (
+                <CarouselItem key={index}>
+                  <div className="relative bg-white rounded-lg shadow-md overflow-hidden">
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      className="w-full h-84 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
+                    <div className="absolute bottom-4 left-6 text-white">
+                      <h2 className="text-3xl font-bold">{item.title}</h2>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
         </div>
 
         {/* Filter Section */}
@@ -188,21 +227,17 @@ const venues = [
                 alt={venue.name}
                 className="w-full h-48 object-cover"
               />
-               <CardHeader className="px-4 pb-0"> {/* Mengurangi padding bawah */}
-                {/* Label "Venue" */}
+               <CardHeader className="px-4 pb-0">
                 <CardDescription className="text-sm text-gray-500 mb-1">Venue</CardDescription>
-                {/* Nama Venue */}
-                <CardTitle className="text-xl font-semibold text-gray-800 leading-tight">{venue.name}</CardTitle> {/* Ukuran judul lebih besar */}
-                {/* Rating dan Lokasi */}
+                <CardTitle className="text-xl font-semibold text-gray-800 leading-tight">{venue.name}</CardTitle>
                 <CardDescription className="flex items-center text-gray-600 text-sm mt-1">
-                  <span className="text-yellow-500 mr-1">⭐</span> {/* Warna bintang kuning */}
-                  <span className="font-medium text-gray-700">{venue.rating}</span> {/* Warna teks rating */}
-                  <span className="mx-1">•</span> {/* Pemisah */}
+                  <span className="text-yellow-500 mr-1">⭐</span>
+                  <span className="font-medium text-gray-700">{venue.rating}</span>
+                  <span className="mx-1">•</span>
                   <span>{venue.location}</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="px-4"> {/* Mengurangi padding atas */}
-                {/* Jenis Olahraga */}
+              <CardContent className="px-4">
                 <div className="flex items-center text-gray-700 text-sm space-x-3">
                   {venue.sports.map((sport, sIdx) => (
                     <span key={sIdx} className="flex">
@@ -215,11 +250,10 @@ const venues = [
                   ))}
                 </div>
               </CardContent>
-               <CardFooter className="p-4 pt-0"> {/* Mengurangi padding atas */}
-                {/* Harga */}
+               <CardFooter className="p-4 pt-0">
                 <div className="flex items-baseline text-gray-800">
                   <span className="text-sm mr-1">Mulai</span>
-                  <span className="font-bold text-xl">{venue.price.amount}</span> {/* Harga utama lebih besar */}
+                  <span className="font-bold text-xl">{venue.price.amount}</span>
                   <span className="text-sm ml-1">{venue.price.per}</span>
                 </div>
               </CardFooter>
@@ -229,14 +263,14 @@ const venues = [
       </div>
         {/* SHADCn Sheet untuk Keranjang */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetContent side="right"> {/* side="right" agar muncul dari kanan */}
+          <SheetContent side="right">
             <SheetHeader>
               <SheetTitle className="text-2xl font-bold">JADWAL DIPILIH</SheetTitle>
               <SheetDescription className="text-gray-600">
                 Berikut adalah jadwal yang Anda pilih.
               </SheetDescription>
             </SheetHeader>
-  
+
             {cartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 text-center">
                 <span className="text-5xl mb-4">🛒</span>
@@ -258,7 +292,7 @@ const venues = [
                 ))}
               </div>
             )}
-  
+
             <SheetFooter className="mt-6 border-t pt-4">
               {cartItems.length > 0 && (
                 <Button className="bg-green-600 hover:bg-green-700 text-white w-full">
