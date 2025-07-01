@@ -5,6 +5,7 @@ import SewaLapanganDashboard1 from '@/pages/dashboard/dashboard-user'
 import DetailProductPage from '@/pages/product/detailproduct-guest'
 import KelolaLapanganDashboard from '@/pages/dashboard/owner/dashboard-kelolavenue'
 import LoginPage from '@/pages/auth/login'
+import SignupPage from '../pages/auth/signup'
 import DashboardPemilikVenue from '../pages/dashboard/owner/dashboard-main'
 import PartnershipPageUser from '../pages/product/partnership-user'
 import DashboardOrder from '../pages/dashboard/owner/dashboard-order'
@@ -23,6 +24,7 @@ export default function AppRouter() {
                 {/* dashboard-guest di set sebagai root */}
                 <Route path="/" element={<SewaLapanganDashboard />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path='/signup' element={<SignupPage />} />
                 <Route path="/verification" element={<Verification />} />
                 <Route path="/detailproduct-guest" element={<DetailProductPage />} />
                 <Route path="/partnership-guest" element={<PartnershipPage />} />
