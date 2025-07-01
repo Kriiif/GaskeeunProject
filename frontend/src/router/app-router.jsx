@@ -11,6 +11,8 @@ import DashboardOrder from '../pages/dashboard/owner/dashboard-order'
 import Verification from '../pages/auth/verif'
 import PartnershipPage from '../pages/product/partnership-guest'
 import CheckoutPage from '../pages/checkout/checkout'
+import DashboardSuperAdmin from '../pages/dashboard/superAdmin/dashboard-superAdmin'
+import DashboardKelolaAjuan from '../pages/dashboard/superAdmin/dashboard-kelolaPengajuan'
 
 export default function AppRouter() {
     return (
@@ -32,6 +34,10 @@ export default function AppRouter() {
                 <Route path="/dashboard-kelolavenue" element={<KelolaLapanganDashboard />} />
                 <Route path="/dashboard-main" element={<DashboardPemilikVenue />} />
                 <Route path="/dashboard-order" element={<DashboardOrder />} />
+                
+                {/* Route halaman untuk super admin */}
+                <Route path="/dashboard-superAdmin" element={<DashboardSuperAdmin />} />
+                <Route path="/dashboard-kelolaAjuan" element={<DashboardKelolaAjuan />} />
             </Routes>
         </Router>
     )
