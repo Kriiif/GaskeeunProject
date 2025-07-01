@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils"
@@ -8,11 +9,15 @@ import { Label } from "@/components/ui/label"
 
 export function LoginForm({ className, ...props }) {
   const navigate = useNavigate()
+  const [errMsg, setErrMsg] = useState("")
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
+          {errMsg && (
+            <p className="text-red-500 text-sm text-center">{errMsg}</p>
+          )}
           <form className="p-6 md:p-8">
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
