@@ -49,7 +49,7 @@ const DashboardSuperAdmin = () => {
     };
     
     return(
-        <div className="flex min-h-screen bg-gray-100 font-sans relative">
+        <div className="flex min-h-screen font-sans relative">
             {/* Overlay for mobile when sidebar is open */}
             {isSidebarOpen && (
                 <div

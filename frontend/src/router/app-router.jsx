@@ -13,7 +13,7 @@ import PartnershipPage from '../pages/product/partnership-guest'
 import CheckoutPage from '../pages/checkout/checkout'
 import DashboardSuperAdmin from '../pages/dashboard/superAdmin/dashboard-superAdmin'
 import DashboardKelolaAjuan from '../pages/dashboard/superAdmin/dashboard-kelolaPengajuan'
-import HistoryUserList from '../pages/dashboard/profile-pages'
+import HistoryUserList from '../pages/dashboard/history-user'
 import ProfileUser from '../pages/dashboard/profile-pages'
 
 export default function AppRouter() {
