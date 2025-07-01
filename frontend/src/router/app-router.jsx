@@ -16,6 +16,7 @@ import DashboardSuperAdmin from '../pages/dashboard/superAdmin/dashboard-superAd
 import DashboardKelolaAjuan from '../pages/dashboard/superAdmin/dashboard-kelolaPengajuan'
 import HistoryUserList from '../pages/dashboard/history-user'
 import ProfileUser from '../pages/dashboard/profile-pages'
+import DashboardListOwnerVenue from '../pages/dashboard/superAdmin/dashboard-listVenueOwner'
 
 export default function AppRouter() {
     return (
@@ -44,6 +45,7 @@ export default function AppRouter() {
                 {/* Route halaman untuk super admin */}
                 <Route path="/dashboard-superAdmin" element={<DashboardSuperAdmin />} />
                 <Route path="/dashboard-kelolaAjuan" element={<DashboardKelolaAjuan />} />
+                <Route path="/dashboard-listOwner" element={<DashboardListOwnerVenue />} />
             </Routes>
         </Router>
     )
