@@ -56,7 +56,7 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
                     <DropdownMenuItem onClick={() => navigate('/profile-pages')}>
                         <span>Profil</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/history-user')}>
                         <span>Riwayat Reservasi</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

@@ -27,7 +27,7 @@ const ProfileUser = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 ">
+    <div className="min-h-screen ">
     <HeaderUser/>
       <div className="max-w-4xl mx-auto mt-30 p-10">
         {/* Main Content */}
@@ -155,9 +155,11 @@ const ProfileUser = () => {
                   </div>
 
                   <div className="pt-4">
-                    <button
+                    <button 
+                      disabled= {!formData.oldPassword || !formData.newPassword || !formData.confirmPassword || formData.newPassword !== formData.confirmPassword}
                       onClick={handleSave}
                       className="bg-gray-400 hover:bg-gray-500 text-white font-medium px-8 py-3 rounded-lg transition-colors ml-auto block"
+                      style={{ cursor: formData.oldPassword && formData.newPassword && formData.confirmPassword && formData.newPassword === formData.confirmPassword ? 'pointer' : 'not-allowed' }}
                     >
                       Simpan Perubahan
                     </button>

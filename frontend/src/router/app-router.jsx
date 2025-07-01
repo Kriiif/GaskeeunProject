@@ -12,6 +12,7 @@ import Verification from '../pages/auth/verif'
 import PartnershipPage from '../pages/product/partnership-guest'
 import CheckoutPage from '../pages/checkout/checkout'
 import ProfileUser from '../pages/dashboard/profile-pages'
+import HistoryUserList from '../pages/dashboard/history-user'
 
 export default function AppRouter() {
     return (
@@ -29,6 +30,7 @@ export default function AppRouter() {
                 <Route path="/partnership-user" element={<PartnershipPageUser />} />
                 <Route path="/profile-pages" element={<ProfileUser />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/history-user" element={<HistoryUserList />} />
 
                 {/* route halaman untuk pemilik venue */}
                 <Route path="/dashboard-kelolavenue" element={<KelolaLapanganDashboard />} />

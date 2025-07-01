@@ -108,7 +108,7 @@ const venues = [
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen font-sans">
       {/* Navbar */}
       <HeaderUser cartItemCount={cartItems.length} onCartClick={() => setIsSheetOpen(true)} />
       {/* Main Content */}
