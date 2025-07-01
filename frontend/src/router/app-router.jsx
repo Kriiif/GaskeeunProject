@@ -11,6 +11,7 @@ import DashboardOrder from '../pages/dashboard/owner/dashboard-order'
 import Verification from '../pages/auth/verif'
 import PartnershipPage from '../pages/product/partnership-guest'
 import CheckoutPage from '../pages/checkout/checkout'
+import ProfileUser from '../pages/dashboard/profile-pages'
 
 export default function AppRouter() {
     return (
@@ -26,6 +27,7 @@ export default function AppRouter() {
                 {/* route halaman untuk user */}
                 <Route path="/dashboard-user" element={<SewaLapanganDashboard1 />} />
                 <Route path="/partnership-user" element={<PartnershipPageUser />} />
+                <Route path="/profile-pages" element={<ProfileUser />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
 
                 {/* route halaman untuk pemilik venue */}

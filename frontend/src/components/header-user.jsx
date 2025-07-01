@@ -28,7 +28,7 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
             <button 
                 className="text-gray-700 hover:text-green-600 font-medium text-center"
                 onClick={() => {
-                    navigate('/partnership')
+                    navigate('/partnership-user')
                 }}
             >
                 Partnership
@@ -53,7 +53,7 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
                 <DropdownMenuContent className="w-56" align="end" forceMount> {/* align="end" agar menu muncul di kanan trigger */}
                     <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/profile-pages')}>
                         <span>Profil</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
