@@ -4,8 +4,8 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "npx prisma generate && nodemon src/server.js",
-    "build": "npx prisma generate && vite build",
+    "dev": "nodemon src/server.js",
+    "build": "vite build",
     "start": "node dist/server.js",
     "seed": "node src/database/seed.js"
   },
