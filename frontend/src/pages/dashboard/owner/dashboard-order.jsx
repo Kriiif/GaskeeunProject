@@ -255,20 +255,20 @@ const DashboardOrder = () => {
                     <Card className="overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50 border-b border-gray-200 justify-center">
+                                <thead className="text-center bg-gray-50 border-b border-gray-200 justify-center">
                                     <tr>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Order ID</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Customer</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Venue</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Date</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Session</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Total</th>
-                                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Transaction <br /> Detail</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Order ID</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Customer</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Venue</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Date</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Session</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Total</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Transaction <br /> Detail</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
                                     {filteredOrders.map((order) => (
-                                        <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                                        <tr key={order.id} className="text-center hover:bg-gray-50 transition-colors">
                                             <td className="px-6 py-4 text-sm font-medium text-gray-900">{order.id}</td>
                                             <td className="px-6 py-4">
                                                 <div>
