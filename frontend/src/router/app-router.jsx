@@ -32,7 +32,7 @@ export default function AppRouter() {
                 <Route path="/partnership-guest" element={<PartnershipPage />} />
 
                 {/* route halaman untuk user */}
-                <Route path="/partnership-user" element={<PartnershipPageUser />} />
+                <Route path="/partnership" element={<PartnershipPageUser />} />
                 <Route path="/profile-pages" element={<ProfileUser />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/history-user" element={<HistoryUserList />} />

@@ -194,7 +194,7 @@ export default function Dashboard() {
               <SelectValue placeholder="Pilih Cabang Olahraga" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">Semua Olahraga</SelectItem> {/* Opsi "All" ditambahkan di sini */}
+              <SelectItem value="All">All</SelectItem> {/* Opsi "All" ditambahkan di sini */}
               <SelectItem value="Badminton">Badminton</SelectItem>
               <SelectItem value="Futsal">Futsal</SelectItem>
               <SelectItem value="Basket">Basket</SelectItem>

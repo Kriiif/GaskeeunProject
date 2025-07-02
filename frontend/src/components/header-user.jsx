@@ -23,12 +23,12 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
         </div>
         <div className="flex flex-grow justify-center space-x-8">
             <button className="text-gray-700 hover:text-green-600 font-medium text-center" onClick={() => {
-                    navigate('/dashboard-user')
+                    navigate('/')
                 }}>Sewa Lapangan</button>
             <button 
                 className="text-gray-700 hover:text-green-600 font-medium text-center"
                 onClick={() => {
-                    navigate('/partnership-user')
+                    navigate('/partnership')
                 }}
             >
                 Partnership

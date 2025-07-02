@@ -24,7 +24,7 @@ const Header = ({ cartItemCount, onCartClick }) => {
             <button 
                 className="text-gray-700 hover:text-green-600 font-medium text-center"
                 onClick={() => {
-                    navigate('/partnership-guest')
+                    navigate('/partnership')
                 }}
             >
                 Partnership
