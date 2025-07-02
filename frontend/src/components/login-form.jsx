@@ -30,7 +30,7 @@ export function LoginForm({ className, ...props }) {
 
     try {
       await login(formData.email, formData.password); // ✅ pakai context
-      navigate('/dashboard-user');
+      navigate('/');
     } catch (error) {
       setErrMsg(error.message || 'Login failed');
       console.error('Login failed:', error);

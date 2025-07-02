@@ -17,13 +17,15 @@ import DashboardKelolaAjuan from '../pages/dashboard/superAdmin/dashboard-kelola
 import HistoryUserList from '../pages/dashboard/history-user'
 import ProfileUser from '../pages/dashboard/profile-pages'
 import DashboardListOwnerVenue from '../pages/dashboard/superAdmin/dashboard-listVenueOwner'
+import Dashboard from '../pages/dashboard/dashboard'
 
 export default function AppRouter() {
     return (
         <Router>
             <Routes>
                 {/* dashboard-guest di set sebagai root */}
-                <Route path="/" element={<SewaLapanganDashboard />} />
+                {/* <Route path="/" element={<SewaLapanganDashboard />} /> */}
+                <Route path="/" element={<Dashboard />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path='/signup' element={<SignupPage />} />
                 <Route path="/verification" element={<Verification />} />

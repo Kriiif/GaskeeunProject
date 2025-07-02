@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import useAuth from '@/hooks/useAuth';
+import { Header } from '@/components/header';
+import { HeaderUser } from '@/components/header-user';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -40,10 +43,10 @@ import {
 
 import { addDays, format, getDay } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Header } from '../../components/header';
 
 const DetailProductPage = () => {
   // --- Data Produk (Tetap sama) ---
+  const { user } = useAuth();
   const product = {
     name: "Johar Arena",
     mainImage: "/carausel/badminton.jpg",
@@ -149,7 +152,11 @@ const DetailProductPage = () => {
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
       {/* HEADER - Kini menerima props cartItemCount dan onCartClick */}
-      <Header cartItemCount={cartItems.length} onCartClick={() => setIsSheetOpen(true)} />
+      {user ? (
+        <HeaderUser cartItemCount={cartItems.length} onCartClick={() => setIsSheetOpen(true)} />
+      ) : (
+        <Header cartItemCount={cartItems.length} onCartClick={() => setIsSheetOpen(true)} />
+      )}
 
       {/* Main Content */}
       <div className="container mx-auto p-6 pt-[100px] mb-8 mt-4">
