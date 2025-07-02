@@ -46,7 +46,7 @@ const DetailProductPage = () => {
   // --- Data Produk (Tetap sama) ---
   const product = {
     name: "Johar Arena",
-    mainImage: "/carausel/badminton.jpg",
+    mainImage: "/carausel/badmintoncourt.jpg",
     sport: "Badminton",
     rating: 4.6,
     location: "Jl. Johar Baru, Kec. Johar Baru, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10560",
