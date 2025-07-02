@@ -1,13 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import HomePage from '@/pages/home/home-page'
-import SewaLapanganDashboard from '@/pages/dashboard/dashboard-guest'
-import SewaLapanganDashboard1 from '@/pages/dashboard/dashboard-user'
 import DetailProductPage from '@/pages/product/detailproduct-guest'
 import KelolaLapanganDashboard from '@/pages/dashboard/owner/dashboard-kelolavenue'
 import LoginPage from '@/pages/auth/login'
 import SignupPage from '../pages/auth/signup'
 import DashboardPemilikVenue from '../pages/dashboard/owner/dashboard-main'
-import PartnershipPageUser from '../pages/product/partnership-user'
+import PartnershipPageUser from '../pages/product/partnership'
 import DashboardOrder from '../pages/dashboard/owner/dashboard-order'
 import Verification from '../pages/auth/verif'
 import PartnershipPage from '../pages/product/partnership-guest'
@@ -18,7 +16,7 @@ import HistoryUserList from '../pages/dashboard/history-user'
 import ProfileUser from '../pages/dashboard/profile-pages'
 import DashboardListOwnerVenue from '../pages/dashboard/superAdmin/dashboard-listVenueOwner'
 import Dashboard from '../pages/dashboard/dashboard'
-import FormPartner from '../pages/dashboard/formpartner'
+import FormPartner from '../pages/dashboard/form-partner'
 
 export default function AppRouter() {
     return (
@@ -34,7 +32,6 @@ export default function AppRouter() {
                 <Route path="/partnership-guest" element={<PartnershipPage />} />
 
                 {/* route halaman untuk user */}
-                <Route path="/dashboard-user" element={<SewaLapanganDashboard1 />} />
                 <Route path="/partnership-user" element={<PartnershipPageUser />} />
                 <Route path="/profile-pages" element={<ProfileUser />} />
                 <Route path="/checkout" element={<CheckoutPage />} />

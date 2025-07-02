@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import useAuth from '../../hooks/useAuth';
 import { HeaderUser } from '../../components/header-user';
+import { Link } from 'react-router-dom';
 
 const PartnershipPage = () => {
+    const { user } = useAuth(); // Mengambil data user dari context
     return(
         <div className="min-h-screen bg-gray-100 font-sans">
             {/* Header section */}
@@ -32,7 +35,7 @@ const PartnershipPage = () => {
                 </div>
 
                 {/* button untuk ke form apply partnership */}
-                <button className='flex justify-center my-[50px] mx-auto bg-[#FD2F2F] text-white px-[43px] py-[19px] rounded'><b>Gaskeeun Apply!</b></button>
+                <Link to={user ? "/form-partner" : "/login"} className='flex justify-center my-[50px] mx-auto bg-[#FD2F2F] text-white px-[43px] py-[19px] rounded'><b>Gaskeeun Apply!</b></Link>
             </div>
         </div>
     )

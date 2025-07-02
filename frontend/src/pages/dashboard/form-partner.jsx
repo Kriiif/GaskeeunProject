@@ -14,7 +14,7 @@ const FormPartner = () => {
   // State untuk nama file yang dipilih
   const [fotoSuratTanahFileName, setFotoSuratTanahFileName] = useState('');
   const [fotoKTPFileName, setFotoKTPFileName] = useState('');
-  const [suratIzinUsahaFileName, setSuratIzinUsahaFileName] = useState('');
+  const [nomorIndukBerusahaFileName, setNomorIndukBerusahaFileName] = useState('');
   const [fotoVenueFileName, setFotoVenueFileName] = useState('');
 
   // State untuk kesalahan validasi
@@ -70,7 +70,7 @@ const FormPartner = () => {
     // Validasi input file
     if (!fotoSuratTanahFileName) { newErrors.fotoSuratTanah = 'Foto Surat Tanah wajib diunggah.'; isValid = false; }
     if (!fotoKTPFileName) { newErrors.fotoKTP = 'Foto KTP wajib diunggah.'; isValid = false; }
-    if (!suratIzinUsahaFileName) { newErrors.suratIzinUsaha = 'Surat Izin Usaha wajib diunggah.'; isValid = false; }
+    if (!nomorIndukBerusaha) { newErrors.suratIzinUsaha = 'Surat Izin Usaha wajib diunggah.'; isValid = false; }
     if (!fotoVenueFileName) { newErrors.fotoVenue = 'Foto Venue wajib diunggah.'; isValid = false; }
 
     setErrors(newErrors);
@@ -114,7 +114,7 @@ const FormPartner = () => {
           ...formData,
           fotoSuratTanah: fotoSuratTanahFileName,
           fotoKTP: fotoKTPFileName,
-          suratIzinUsaha: suratIzinUsahaFileName,
+          suratIzinUsaha: nomorIndukBerusaha,
           fotoVenue: fotoVenueFileName,
         });
         setSubmissionMessage({ type: 'success', text: result.message });
@@ -122,7 +122,7 @@ const FormPartner = () => {
         setFormData({ namaPemilik: '', npwp: '', nomorTelepon: '', email: '', lokasiVenue: '' });
         setFotoSuratTanahFileName('');
         setFotoKTPFileName('');
-        setSuratIzinUsahaFileName('');
+        setnomorIndukBerusaha('');
         setFotoVenueFileName('');
         setErrors({}); // Hapus semua error
       } else {
@@ -230,24 +230,20 @@ const FormPartner = () => {
               {errors.npwp && <p className="text-red-500 text-xs italic mt-1">{errors.npwp}</p>}
             </div>
 
-            {/* Surat Izin Usaha */}
+            {/* Nomor Induk Berusaha */}
             <div className="mb-4">
-              <label htmlFor="suratIzinUsaha" className="block text-gray-700 text-sm font-bold mb-2">
-                Surat Izin Usaha <span className="text-red-500">*</span>
+              <label htmlFor="nomorIndukBerusaha" className="block text-gray-700 text-sm font-bold mb-2">
+                Nomor Induk Berusaha <span className="text-red-500">*</span>
               </label>
-              <div className={fileInputClasses(suratIzinUsahaFileName, errors.suratIzinUsaha)}>
                 <input
-                  type="file"
-                  id="suratIzinUsaha"
-                  className="absolute w-full h-full opacity-0 cursor-pointer"
-                  onChange={(e) => handleFileChange(e, setSuratIzinUsahaFileName, 'suratIzinUsaha')}
-                  accept=".pdf, .doc, .docx" // Membolehkan PDF dan dokumen Word
+                  type="text"
+                  id="nomorIndukBerusaha"
+                  value={formData.nomorIndukBerusaha}
+                  onChange={handleChange}
+                  className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.nomorIndukBerusaha ? 'border-red-500' : ''}`}
+                  placeholder="Masukkan nomor Induk Berusaha Anda"
                 />
-                <span className={fileTextClasses(suratIzinUsahaFileName)}>
-                  {suratIzinUsahaFileName || 'Pilih File (PDF, DOC, DOCX)'}
-                </span>
-              </div>
-              {errors.suratIzinUsaha && <p className="text-red-500 text-xs italic mt-1">{errors.suratIzinUsaha}</p>}
+              {errors.nomorIndukBerusaha && <p className="text-red-500 text-xs italic mt-1">{errors.nomorIndukBerusaha}</p>}
             </div>
 
             {/* Foto Venue */}
