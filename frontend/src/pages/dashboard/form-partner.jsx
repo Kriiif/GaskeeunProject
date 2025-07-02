@@ -70,7 +70,7 @@ const FormPartner = () => {
     // Validasi input file
     if (!fotoSuratTanahFileName) { newErrors.fotoSuratTanah = 'Foto Surat Tanah wajib diunggah.'; isValid = false; }
     if (!fotoKTPFileName) { newErrors.fotoKTP = 'Foto KTP wajib diunggah.'; isValid = false; }
-    if (!nomorIndukBerusaha) { newErrors.suratIzinUsaha = 'Surat Izin Usaha wajib diunggah.'; isValid = false; }
+    if (!nomorIndukBerusahaFileName) { newErrors.nomorIndukBerusaha = 'Nomor Induk Berusaha wajib diisi.'; isValid = false; }
     if (!fotoVenueFileName) { newErrors.fotoVenue = 'Foto Venue wajib diunggah.'; isValid = false; }
 
     setErrors(newErrors);
