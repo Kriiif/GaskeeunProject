@@ -7,20 +7,12 @@ const bookingSchema = new mongoose.Schema({
     required: true
   },
 
-  field_id: {
+  field_times_id: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Field',
+    ref: 'Field_Times',
     required: true
   },
-
-  start_time: {
-    type: Date
-  },
-
-  end_time: {
-    type: Date
-  },
-
+  
   status: {
     type: String,
     enum: ['PENDING', 'CONFIRMED', 'CANCELLED'],
