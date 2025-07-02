@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth'; // ⬅️ Pastikan path-nya sesuai
@@ -10,7 +10,17 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm({ className, ...props }) {
   const navigate = useNavigate();
-  const { login, loginWithGoogle } = useAuth(); // ✅ pakai context
+  const { login, loginWithGoogle, user } = useAuth(); // ✅ pakai context
+  useEffect(() => {
+    if (!user) return;
+
+    if (user.role === 'owner') {
+      navigate('/dashboard-main');
+    } else {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,8 +39,8 @@ export function LoginForm({ className, ...props }) {
     e.preventDefault();
 
     try {
-      await login(formData.email, formData.password); // ✅ pakai context
-      navigate('/');
+      await login(formData.email, formData.password);
+      // Jangan navigate di sini
     } catch (error) {
       setErrMsg(error.message || 'Login failed');
       console.error('Login failed:', error);
@@ -82,9 +92,6 @@ export function LoginForm({ className, ...props }) {
                   className="w-full bg-transparent"
                   onSuccess={(credentialResponse) => {
                     loginWithGoogle(credentialResponse.credential)
-                      .then(() => {
-                        navigate('/dashboard-user');
-                      })
                       .catch((err) => {
                         console.error("Google login failed:", err);
                         setErrMsg("Google login failed");
