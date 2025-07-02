@@ -18,6 +18,7 @@ import HistoryUserList from '../pages/dashboard/history-user'
 import ProfileUser from '../pages/dashboard/profile-pages'
 import DashboardListOwnerVenue from '../pages/dashboard/superAdmin/dashboard-listVenueOwner'
 import Dashboard from '../pages/dashboard/dashboard'
+import FormPartner from '../pages/dashboard/formpartner'
 
 export default function AppRouter() {
     return (
@@ -38,6 +39,7 @@ export default function AppRouter() {
                 <Route path="/profile-pages" element={<ProfileUser />} />
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/history-user" element={<HistoryUserList />} />
+                <Route path="/form-partner" element={<FormPartner />} />
 
                 {/* route halaman untuk pemilik venue */}
                 <Route path="/dashboard-kelolavenue" element={<KelolaLapanganDashboard />} />
