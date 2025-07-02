@@ -80,7 +80,6 @@ export default function Dashboard() {
       ) : (
         <Header cartItemCount={cartItems.length} onCartClick={() => setIsSheetOpen(true)} />
       )}
-
       <div className="container mx-auto p-6 pt-[100px]">
         <div className="relative mb-8 mt-4">
           <Carousel
@@ -120,7 +119,23 @@ export default function Dashboard() {
           </Select>
           <Button className="bg-green-600 hover:bg-green-700 px-6 py-3 font-medium">Cari Venue</Button>
         </div>
-
+        {/* Venue List Header */}
+        <div className="flex justify-between items-center mb-6">
+            <p className="text-gray-700 text-lg">Menemukan <span className="font-bold">212</span> Venue Tersedia</p>
+            <div className="flex items-center space-x-2">
+                <span className="text-gray-700">Urutkan Berdasarkan:</span>
+                <Select onValueChange={setSortBy} value={sortBy}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Urutkan" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="Harga Tertinggi">Harga Tertinggi</SelectItem>
+                    <SelectItem value="Harga Terendah">Harga Terendah</SelectItem>
+                    <SelectItem value="Rating Tertinggi">Rating Tertinggi</SelectItem>
+                </SelectContent>
+                </Select>
+            </div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {venues.map((venue, index) => (
             <Card key={index} className="overflow-hidden pt-0 mb-0">
