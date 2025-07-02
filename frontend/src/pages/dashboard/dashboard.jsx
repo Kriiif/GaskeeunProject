@@ -20,7 +20,7 @@ import Autoplay from 'embla-carousel-autoplay';
 
 const carouselImages = [
   { src: '/carausel/badmintoncourt.jpg', alt: 'Badminton Court', title: 'Badminton' },
-  { src: '/carausel/futsalcourt.jpg', alt: 'Futsal Court', title: 'Futsal' },
+  { src: '/carausel/1.jpg', alt: 'Futsal Court', title: 'Futsal' },
   { src: '/carausel/basketcourt.jpg', alt: 'Basketball Court', title: 'Basket' },
   { src: '/carausel/tenniscourt.jpg', alt: 'Tennis Court', title: 'Tenis' },
 ];
