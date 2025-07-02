@@ -91,7 +91,8 @@ export default function Dashboard() {
       );
     }
 
-    if (sportType) {
+    // Perubahan di sini: Jika sportType adalah "All", jangan filter berdasarkan olahraga
+    if (sportType && sportType !== 'All') {
       tempVenues = tempVenues.filter(venue =>
         venue.sports.includes(sportType)
       );
@@ -143,7 +144,7 @@ export default function Dashboard() {
     });
 
     setFilteredVenues(sortedCurrentVenues);
-  }, [sortBy]); // Hanya bergantung pada sortBy
+  }, [sortBy]);
 
   return (
     <div className="min-h-screen font-sans">
@@ -193,25 +194,20 @@ export default function Dashboard() {
               <SelectValue placeholder="Pilih Cabang Olahraga" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="All">Semua Olahraga</SelectItem> {/* Opsi "All" ditambahkan di sini */}
               <SelectItem value="Badminton">Badminton</SelectItem>
               <SelectItem value="Futsal">Futsal</SelectItem>
               <SelectItem value="Basket">Basket</SelectItem>
               <SelectItem value="Tenis">Tenis</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            className="bg-green-600 hover:bg-green-700 px-6 py-3 font-medium"
-            onClick={applyFilters} // Tombol ini hanya memicu filter nama, kota, dan olahraga
-          >
-            Cari Venue
-          </Button>
         </div>
         {/* Venue List Header */}
         <div className="flex justify-between items-center mb-6">
             <p className="text-gray-700 text-lg">Menemukan <span className="font-bold">{filteredVenues.length}</span> Venue Tersedia</p>
             <div className="flex items-center space-x-2">
                 <span className="text-gray-700">Urutkan Berdasarkan:</span>
-                <Select onValueChange={setSortBy} value={sortBy}> {/* Perubahan sortBy akan memicu useEffect terpisah */}
+                <Select onValueChange={setSortBy} value={sortBy}>
                 <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Urutkan" />
                 </SelectTrigger>
