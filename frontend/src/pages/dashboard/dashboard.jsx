@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useAuth from '@/hooks/useAuth';
 import { Header } from '@/components/header';
 import { HeaderUser } from '@/components/header-user';
@@ -25,34 +25,34 @@ const carouselImages = [
   { src: '/carausel/tenniscourt.jpg', alt: 'Tennis Court', title: 'Tenis' },
 ];
 
-const venues = [
+const allVenues = [
   {
     name: 'Jonhar Arena',
     rating: 5.0,
     location: 'Kota Jakarta Pusat',
-    price: { amount: 'Rp 50.000', per: '/ Sesi' },
+    price: { amount: 'Rp 150.000', per: '/ Sesi' },
     sports: ['Futsal', 'Badminton'],
     image: '/venue/jorhar.png'
   },
   {
     name: 'Vlocity Arena',
-    rating: 5.0,
+    rating: 4.0,
     location: 'Kota Jakarta Barat',
-    price: { amount: 'Rp 50.000', per: '/ Sesi' },
+    price: { amount: 'Rp 90.000', per: '/ Sesi' },
     sports: ['Basket', 'Tenis'],
     image: '/venue/tenis.jpg'
   },
   {
     name: 'GOR Kurnia',
-    rating: 5.0,
+    rating: 4.3,
     location: 'Kota Jakarta Timur',
-    price: { amount: 'Rp 50.000', per: '/ Sesi' },
+    price: { amount: 'Rp 70.000', per: '/ Sesi' },
     sports: ['Badminton'],
     image: '/venue/badmin1.jpg'
   },
   {
     name: 'Johar Arena',
-    rating: 5.0,
+    rating: 1.0,
     location: 'Kota Jakarta Pusat',
     price: { amount: 'Rp 50.000', per: '/ Sesi' },
     sports: ['Futsal'],
@@ -69,9 +69,81 @@ export default function Dashboard() {
   const [cartItems, setCartItems] = useState([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+  const [filteredVenues, setFilteredVenues] = useState(allVenues);
+
   const removeFromCart = (slotId, fieldId, date) => {
     setCartItems(cartItems.filter(item => !(item.slotId === slotId && item.fieldId === fieldId && item.date === date)));
   };
+
+  // Fungsi untuk menerapkan filter berdasarkan nama, kota, dan jenis olahraga
+  const applyFilters = () => {
+    let tempVenues = [...allVenues];
+
+    if (venueName) {
+      tempVenues = tempVenues.filter(venue =>
+        venue.name.toLowerCase().includes(venueName.toLowerCase())
+      );
+    }
+
+    if (city) {
+      tempVenues = tempVenues.filter(venue =>
+        venue.location.toLowerCase().includes(city.toLowerCase())
+      );
+    }
+
+    if (sportType) {
+      tempVenues = tempVenues.filter(venue =>
+        venue.sports.includes(sportType)
+      );
+    }
+
+    // Terapkan pengurutan ke hasil filter
+    tempVenues.sort((a, b) => {
+      const priceA = parseFloat(a.price.amount.replace('Rp ', '').replace('.', ''));
+      const priceB = parseFloat(b.price.amount.replace('Rp ', '').replace('.', ''));
+
+      if (sortBy === 'Harga Tertinggi') {
+        return priceB - priceA;
+      } else if (sortBy === 'Harga Terendah') {
+        return priceA - priceB;
+      } else if (sortBy === 'Rating Tertinggi') {
+        return b.rating - a.rating;
+      }
+      return 0;
+    });
+
+    setFilteredVenues(tempVenues);
+  };
+
+  // useEffect untuk memicu applyFilters saat komponen pertama kali dimuat
+  // dan setiap kali venueName, city, atau sportType berubah.
+  // Ini adalah filter utama yang dipicu oleh input dan tombol "Cari Venue".
+  useEffect(() => {
+    applyFilters();
+  }, [venueName, city, sportType]);
+
+  // useEffect terpisah untuk memicu pengurutan setiap kali sortBy berubah.
+  // Ini akan mengurutkan ulang 'filteredVenues' yang sudah ada.
+  useEffect(() => {
+    // Pastikan kita bekerja dengan salinan current filteredVenues
+    const sortedCurrentVenues = [...filteredVenues];
+
+    sortedCurrentVenues.sort((a, b) => {
+      const priceA = parseFloat(a.price.amount.replace('Rp ', '').replace('.', ''));
+      const priceB = parseFloat(b.price.amount.replace('Rp ', '').replace('.', ''));
+
+      if (sortBy === 'Harga Tertinggi') {
+        return priceB - priceA;
+      } else if (sortBy === 'Harga Terendah') {
+        return priceA - priceB;
+      } else if (sortBy === 'Rating Tertinggi') {
+        return b.rating - a.rating;
+      }
+      return 0;
+    });
+
+    setFilteredVenues(sortedCurrentVenues);
+  }, [sortBy]); // Hanya bergantung pada sortBy
 
   return (
     <div className="min-h-screen font-sans">
@@ -104,8 +176,18 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-wrap gap-4 items-center justify-between">
-          <Input placeholder="Cari Nama Venue" className="flex-1 min-w-[200px]" value={venueName} onChange={(e) => setVenueName(e.target.value)} />
-          <Input placeholder="Pilih kota" className="flex-1 min-w-[200px]" value={city} onChange={(e) => setCity(e.target.value)} />
+          <Input
+            placeholder="Cari Nama Venue"
+            className="flex-1 min-w-[200px]"
+            value={venueName}
+            onChange={(e) => setVenueName(e.target.value)}
+          />
+          <Input
+            placeholder="Pilih kota"
+            className="flex-1 min-w-[200px]"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
           <Select onValueChange={setSportType} value={sportType}>
             <SelectTrigger className="flex-1 min-w-[200px]">
               <SelectValue placeholder="Pilih Cabang Olahraga" />
@@ -117,14 +199,19 @@ export default function Dashboard() {
               <SelectItem value="Tenis">Tenis</SelectItem>
             </SelectContent>
           </Select>
-          <Button className="bg-green-600 hover:bg-green-700 px-6 py-3 font-medium">Cari Venue</Button>
+          <Button
+            className="bg-green-600 hover:bg-green-700 px-6 py-3 font-medium"
+            onClick={applyFilters} // Tombol ini hanya memicu filter nama, kota, dan olahraga
+          >
+            Cari Venue
+          </Button>
         </div>
         {/* Venue List Header */}
         <div className="flex justify-between items-center mb-6">
-            <p className="text-gray-700 text-lg">Menemukan <span className="font-bold">212</span> Venue Tersedia</p>
+            <p className="text-gray-700 text-lg">Menemukan <span className="font-bold">{filteredVenues.length}</span> Venue Tersedia</p>
             <div className="flex items-center space-x-2">
                 <span className="text-gray-700">Urutkan Berdasarkan:</span>
-                <Select onValueChange={setSortBy} value={sortBy}>
+                <Select onValueChange={setSortBy} value={sortBy}> {/* Perubahan sortBy akan memicu useEffect terpisah */}
                 <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Urutkan" />
                 </SelectTrigger>
@@ -137,7 +224,7 @@ export default function Dashboard() {
             </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {venues.map((venue, index) => (
+          {filteredVenues.map((venue, index) => (
             <Card key={index} className="overflow-hidden pt-0 mb-0">
               <img src={venue.image} alt={venue.name} className="w-full h-48 object-cover" />
               <CardHeader className="px-4 pb-0">
