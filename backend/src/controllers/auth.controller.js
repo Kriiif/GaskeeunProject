@@ -108,20 +108,58 @@ export const signOut = async (req, res, next) => {
 const client = new OAuth2Client('76727925757-6m2gt2l6svlocupl9450b4l0chhh1pro.apps.googleusercontent.com');
 
 export const googleSignIn = async (req, res, next) => {
+  try {
     const { token } = req.body;
+
     const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: '76727925757-6m2gt2l6svlocupl9450b4l0chhh1pro.apps.googleusercontent.com',
+      idToken: token,
+      audience: '76727925757-6m2gt2l6svlocupl9450b4l0chhh1pro.apps.googleusercontent.com',
     });
 
     const payload = ticket.getPayload();
+    const { email, name, picture, sub } = payload;
 
-    // Example: save user or create JWT
-    const user = {
-        name: payload.name,
-        email: payload.email,
-        picture: payload.picture,
-    };
+    // Cek apakah user sudah ada
+    let user = await User.findOne({ email });
 
-    res.json({ user });
-}
+    // Kalau belum, buat user baru (tanpa password)
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        picture,
+        googleId: sub, // opsional, bisa simpan Google ID
+        password: 'google-auth', // placeholder aja biar gak null
+      });
+    }
+
+    const jwtToken = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+    return res.status(200).json({
+      message: 'Google login success',
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        picture: user.picture,
+      },
+      token: jwtToken,
+    });
+
+  } catch (err) {
+    console.error('Google login error:', err);
+    res.status(401).json({ message: 'Invalid Google token' });
+  }
+};
+
+export const getMe = async (req, res) => {
+  const user = req.user;
+
+  return res.status(200).json({
+    user: {
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    }
+  });
+};

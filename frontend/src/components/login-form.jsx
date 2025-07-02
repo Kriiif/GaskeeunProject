@@ -1,60 +1,47 @@
 import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import useAuth from '@/hooks/useAuth'; // ⬅️ Pastikan path-nya sesuai
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function LoginForm({ className, ...props }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { login, loginWithGoogle } = useAuth(); // ✅ pakai context
   const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-  })
-  const [errMsg, setErrMsg] = useState("")
+    email: '',
+    password: '',
+  });
+  const [errMsg, setErrMsg] = useState('');
 
   const handleChange = (e) => {
-    setErrMsg("")
+    setErrMsg('');
     setFormData({
       ...formData,
-      [e.target.id]: e.target.value
-    })
-  }
+      [e.target.id]: e.target.value,
+    });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:3000/api/v1/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        setErrMsg(data.message || "Login failed")
-        return
-      }
-
-      const data = await res.json()
-      console.log("Logged in!", data)
-      navigate("/dashboard-user")
-
+      await login(formData.email, formData.password); // ✅ pakai context
+      navigate('/dashboard-user');
     } catch (error) {
-      setErrMsg(error.message || "Login failed")
-      console.error("Login failed:", error)
+      setErrMsg(error.message || 'Login failed');
+      console.error('Login failed:', error);
     }
-  }
-
+  };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form className="p-6 md:p-8" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -62,21 +49,29 @@ export function LoginForm({ className, ...props }) {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" onChange={handleChange} value={formData.email} placeholder="m@example.com" required />
+                <Input
+                  id="email"
+                  type="email"
+                  onChange={handleChange}
+                  value={formData.email}
+                  placeholder="m@example.com"
+                  required
+                />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  {/* <a href="#" className="ml-auto text-sm underline-offset-2 hover:underline">
-                    Forgot your password?
-                  </a> */}
-                </div>
-                <Input id="password" type="password" onChange={handleChange} value={formData.password} required />
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  onChange={handleChange}
+                  value={formData.password}
+                  required
+                />
               </div>
               {errMsg && (
                 <p className="text-red-500 text-sm text-center">{errMsg}</p>
               )}
-              <Button type="submit" onClick={handleSubmit} className="w-full">
+              <Button type="submit" className="w-full">
                 Login
               </Button>
               <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
@@ -86,19 +81,18 @@ export function LoginForm({ className, ...props }) {
                 <GoogleLogin
                   className="w-full bg-transparent"
                   onSuccess={(credentialResponse) => {
-                    fetch('http://localhost:3000/api/v1/auth/login-google', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ token: credentialResponse.credential })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                      console.log("Logged in!", data);
-                      navigate('/dashboard-user');
-                    });
+                    loginWithGoogle(credentialResponse.credential)
+                      .then(() => {
+                        navigate('/dashboard-user');
+                      })
+                      .catch((err) => {
+                        console.error("Google login failed:", err);
+                        setErrMsg("Google login failed");
+                      });
                   }}
                   onError={() => {
-                    console.log('Login Failed');
+                    console.log('Google Login Error');
+                    setErrMsg("Google login failed");
                   }}
                 />
               </div>
@@ -120,11 +114,5 @@ export function LoginForm({ className, ...props }) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
-
-
-
-
-// google login button
