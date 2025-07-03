@@ -44,6 +44,8 @@ const KelolaLapanganDashboard = () => {
     const [editFormData, setEditFormData] = useState({
         name: '',
         location: '',
+        category: '',
+        desc: '',
         status: '',
         image: '',
         openHour: '',
@@ -66,7 +68,8 @@ const KelolaLapanganDashboard = () => {
                 id: 'lapangan1',
                 name: 'Lapangan 1',
                 image: '/venue/badmin1.jpg',
-                sport: 'Badminton',
+                category: 'Badminton',
+                desc: 'Lapangan badminton indoor dengan standar nasional.',
                 rating: 4.5,
                 location: 'Jl. Kemuning',
                 openHour: '08:00',
@@ -84,7 +87,8 @@ const KelolaLapanganDashboard = () => {
                 id: 'lapangan2',
                 name: 'Lapangan 2',
                 image: '/venue/badmin1.jpg',
-                sport: 'Badminton',
+                category: 'Badminton',
+                desc: 'Lapangan badminton outdoor dengan pemandangan taman.',
                 rating: 4.2,
                 location: 'Jl. Cempaka',
                 openHour: '09:00',
@@ -198,6 +202,8 @@ const KelolaLapanganDashboard = () => {
         setEditFormData({
             name: lapangan.name,
             location: lapangan.location,
+            category: lapangan.category,
+            desc: lapangan.desc,
             status: lapangan.status,
             image: lapangan.image,
             openHour: lapangan.openHour,
@@ -364,7 +370,7 @@ const KelolaLapanganDashboard = () => {
                                                 <span>{lapangan.openHour} - {lapangan.closeHour}</span>
                                             </div>
                                             <div className="text-sm text-gray-500">
-                                                <span className="font-medium">{lapangan.sport}</span>
+                                                <span className="font-medium">{lapangan.category}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -495,6 +501,16 @@ const KelolaLapanganDashboard = () => {
                             <label htmlFor="location" className="text-right font-medium">Lokasi</label>
                             <Input id="location" name="location" value={editFormData.location} onChange={handleEditFormChange} className="col-span-3" />
                         </div>
+                        {/* --- START: Added Form Fields --- */}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="category" className="text-right font-medium">Kategori</label>
+                            <Input id="category" name="category" value={editFormData.category} onChange={handleEditFormChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="desc" className="text-right font-medium">Deskripsi</label>
+                            <Input id="desc" name="desc" value={editFormData.desc} onChange={handleEditFormChange} className="col-span-3" />
+                        </div>
+                        {/* --- END: Added Form Fields --- */}
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="imageUpload" className="text-right font-medium">Gambar</label>
                             <div className="col-span-3">
@@ -516,7 +532,7 @@ const KelolaLapanganDashboard = () => {
                                 id="openHourEdit"
                                 name="openHour"
                                 type="time"
-                                className="flex justify-center"
+                                className="col-span-3"
                                 value={editFormData.openHour}
                                 onChange={handleEditFormChange}
                             />
@@ -527,7 +543,7 @@ const KelolaLapanganDashboard = () => {
                                 id="closeHourEdit"
                                 name="closeHour"
                                 type="time"
-                                className="flex justify-center"
+                                className="col-span-3"
                                 value={editFormData.closeHour}
                                 onChange={handleEditFormChange}
                             />
