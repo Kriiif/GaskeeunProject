@@ -136,13 +136,33 @@ const KelolaLapanganDashboard = () => {
             const token = localStorage.getItem('token');
             if (!token) return;
             try {
+                // Coba fetch venue dari endpoint partnership request user
+                const resPartner = await fetch('http://localhost:3000/api/v1/partnership', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const partnerData = await resPartner.json();
+                if (resPartner.ok && partnerData.data && partnerData.data.length > 0) {
+                    // Ambil partner_req_id dari request yang sudah di-approve
+                    const approvedReq = partnerData.data.find(req => req.status === 'approved');
+                    if (approvedReq) {
+                        // Fetch venue by partner_req_id
+                        const resVenue = await fetch(`http://localhost:3000/api/v1/partnership/${approvedReq._id}/venue`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const venueData = await resVenue.json();
+                        if (resVenue.ok && venueData.data) {
+                            setMyVenue(venueData.data);
+                            return;
+                        }
+                    }
+                }
+                // Fallback: fetch /venues/my jika ada endpoint tersebut
                 const res = await fetch('http://localhost:3000/api/v1/venues/my', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
                 if (res.ok && data.venue) setMyVenue(data.venue);
             } catch (err) {
-                // Optional: tampilkan error
                 // console.error('Gagal fetch venue:', err);
             }
         };
