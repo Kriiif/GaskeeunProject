@@ -64,6 +64,7 @@ const KelolaLapanganDashboard = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [activeSchedules, setActiveSchedules] = useState({});
+    const [totalActiveSchedules, setTotalActiveSchedules] = useState(0);
 
     // Main data state
     const [lapangans, setLapangans] = useState([]);
@@ -86,6 +87,16 @@ const KelolaLapanganDashboard = () => {
         };
         fetchLapangans();
     }, [myVenue]);
+
+    // Hitung jadwal aktif dari jumlah lapangan yang online saja
+    useEffect(() => {
+        if (!lapangans || lapangans.length === 0) {
+            setTotalActiveSchedules(0);
+            return;
+        }
+        const onlineFields = lapangans.filter(l => l.is_active);
+        setTotalActiveSchedules(onlineFields.length);
+    }, [lapangans]);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -384,10 +395,6 @@ const KelolaLapanganDashboard = () => {
             },
         }));
     };
-
-    const totalActiveSchedules = Object.values(activeSchedules).reduce((total, lapanganSlots) => {
-        return total + Object.values(lapanganSlots).filter(isActive => isActive).length;
-    }, 0);
 
     const handleButtonClick = () => {
         fileInputRef.current.click();
