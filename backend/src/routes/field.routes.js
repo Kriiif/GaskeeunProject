@@ -40,15 +40,15 @@ router.get('/venue/:venue_id', async (req, res) => {
 // Tambah field baru
 router.post('/', upload.single('image'), authorize, async (req, res) => {
   try {
-    const { name, category, price, desc, open_hour, close_hour, location } = req.body;
+    const { name, category, price, desc, open_hour, close_hour, location, venue_id } = req.body;
 
-    if (!name || !category || !price || !desc || !open_hour || !close_hour || !location) {
-      return res.status(400).json({ message: 'Semua field wajib diisi' });
+    if (!name || !category || !price || !desc || !open_hour || !close_hour || !location || !venue_id) {
+      return res.status(400).json({ message: 'Semua field wajib diisi (termasuk venue_id)' });
     }
 
     const parsedPrice = parseInt(price);
-        if (isNaN(parsedPrice)) {
-        return res.status(400).json({ message: 'Harga harus berupa angka' });
+    if (isNaN(parsedPrice)) {
+      return res.status(400).json({ message: 'Harga harus berupa angka' });
     }
 
     console.log('REQ BODY:', req.body);
@@ -58,9 +58,10 @@ router.post('/', upload.single('image'), authorize, async (req, res) => {
     const image_url = req.file ? `/uploads/${req.file.filename}` : null;
 
     const newField = new Field({
+      venue_id: venue_id, // venue_id sudah divalidasi
       name,
       category,
-      price: parseInt(price),
+      price: parsedPrice,
       desc,
       location,
       open_hour,
