@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, Trash } from 'lucide-react'; // Menghapus PlusCircle
+import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, Trash } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from 'react-router-dom';
@@ -55,7 +55,7 @@ const KelolaLapanganDashboard = () => {
                 image: '/venue/badmin1.jpg',
                 sport: 'Badminton',
                 rating: 4.5,
-                location: 'Jl. Contoh No. 123',
+                location: 'Jl. Kemuning',
                 status: 'Online',
                 timeSlots: [
                     { time: '06.00 - 08.30', status: 'available' },
@@ -71,7 +71,7 @@ const KelolaLapanganDashboard = () => {
                 image: '/venue/badmin1.jpg',
                 sport: 'Badminton',
                 rating: 4.2,
-                location: 'Jl. Contoh No. 456',
+                location: 'Jl. Cempaka',
                 status: 'Offline',
                 timeSlots: [
                     { time: '08.00 - 10.00', status: 'available' },
@@ -182,6 +182,11 @@ const KelolaLapanganDashboard = () => {
         fileInputRef.current.click();
     };
 
+    // Logika filter hanya berdasarkan nama lapangan
+    const filteredLapangans = lapangans.filter(lapangan =>
+        lapangan.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
         <div className="flex min-h-screen bg-gray-100 font-sans relative">
             {isSidebarOpen && (
@@ -206,7 +211,7 @@ const KelolaLapanganDashboard = () => {
                             <Search className="absolute left-3 h-5 w-5 text-gray-400" />
                             <Input
                                 type="text"
-                                placeholder="Search venues..."
+                                placeholder="Cari berdasarkan nama venue..."
                                 className="pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent w-full"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -231,7 +236,6 @@ const KelolaLapanganDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Container for Jadwal Aktif */}
                     <div className="flex justify-end items-center gap-4 mb-6">
                         <div className="bg-green-700 text-white font-bold px-4 py-2 rounded-full text-sm shadow-md">
                             <span>{totalActiveSchedules} Jadwal Aktif</span>
@@ -239,7 +243,16 @@ const KelolaLapanganDashboard = () => {
                     </div>
 
                     <div className="space-y-6">
-                        {lapangans.map((lapangan) => (
+                        {/* IMPLEMENTASI: Tampilkan pesan jika tidak ada hasil pencarian */}
+                        {filteredLapangans.length === 0 && (
+                            <Card className="text-center py-12">
+                                <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada lapangan ditemukan</h3>
+                                <p className="text-sm text-gray-500">Coba ubah kata kunci pencarian Anda.</p>
+                            </Card>
+                        )}
+                        
+                        {filteredLapangans.map((lapangan) => (
                             <Card key={lapangan.id} className="p-6 hover:shadow-lg transition-shadow duration-200">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-start">
