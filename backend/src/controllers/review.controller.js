@@ -1,39 +1,41 @@
 import Review from '../models/review.model.js';
 import Field from '../models/field.model.js';
 import mongoose from 'mongoose';
+import Booking from '../models/booking.model.js';
 
 export const createReview = async (req, res, next) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        const { field_id, rating, comment } = req.body;
+        const { booking_id, field_id, rating, comment } = req.body;
         const user_id = req.user._id;
 
         // Validate input
-        if (!field_id || !rating) {
-            return res.status(400).json({ message: 'Field ID and rating are required' });
+        if (!booking_id || !field_id || !rating) {
+            return res.status(400).json({ message: 'Booking ID, Field ID and rating are required' });
         }
 
         if (rating < 1 || rating > 5) {
             return res.status(400).json({ message: 'Rating must be between 1 and 5' });
         }
 
-        // Check if field exists
-        const field = await Field.findById(field_id);
-        if (!field) {
-            return res.status(404).json({ message: 'Field not found' });
+        // Check if booking exists and belongs to the user
+        const booking = await Booking.findOne({ _id: booking_id, user_id });
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found or does not belong to the user' });
         }
 
-        // Check if user already reviewed this field
-        const existingReview = await Review.findOne({ user_id, field_id });
+        // Check if user already reviewed this booking
+        const existingReview = await Review.findOne({ booking_id });
         if (existingReview) {
-            return res.status(409).json({ message: 'You have already reviewed this field' });
+            return res.status(409).json({ message: 'You have already reviewed this booking' });
         }
 
         // Create review
         const newReview = await Review.create([{
             user_id,
+            booking_id,
             field_id,
             rating,
             comment: comment || ''

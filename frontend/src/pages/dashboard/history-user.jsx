@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HeaderUser } from "@/components/header-user"
 import StarRating from "@/components/ui/star-rating"
 import axios from "axios"
+import { useAuth } from "@/contexts/AuthContext"
 
 // Enhanced Detail Dialog
-const HistoryDetailPage = ({ isDetailDialogOpen, setIsDetailDialogOpen, orderDetail, onGiveRating }) => {
+const HistoryDetailPage = ({ isDetailDialogOpen, setIsDetailDialogOpen, orderDetail, onGiveRating, customerName }) => {
 
   return (
     <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
@@ -32,7 +33,7 @@ const HistoryDetailPage = ({ isDetailDialogOpen, setIsDetailDialogOpen, orderDet
                 <User className="h-4 w-4 mr-2" />
                 Nama Pemesan
               </label>
-              <div className="p-3 bg-gray-50 rounded-lg border text-sm">{orderDetail?.customer || ""}</div>
+              <div className="p-3 bg-gray-50 rounded-lg border text-sm">{customerName || ""}</div>
             </div>
 
             <div>
@@ -59,14 +60,6 @@ const HistoryDetailPage = ({ isDetailDialogOpen, setIsDetailDialogOpen, orderDet
                   {orderDetail?.session}
                 </div>
               </div>
-            </div>
-
-            <div>
-              <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                <CreditCard className="h-4 w-4 mr-2" />
-                Metode Pembayaran
-              </label>
-              <div className="p-3 bg-gray-50 rounded-lg border text-sm">{orderDetail?.method || "N/A"}</div>
             </div>
 
             <div>
@@ -118,6 +111,14 @@ const RatingDialog = ({ isRatingDialogOpen, setIsRatingDialogOpen, selectedTrans
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  useEffect(() => {
+    // Reset state when the dialog opens to ensure a clean slate for each rating
+    if (isRatingDialogOpen) {
+      setRating(0)
+      setComment("")
+    }
+  }, [isRatingDialogOpen])
+
   const handleSubmit = async () => {
     if (rating === 0) {
       alert("Mohon berikan rating terlebih dahulu")
@@ -126,7 +127,7 @@ const RatingDialog = ({ isRatingDialogOpen, setIsRatingDialogOpen, selectedTrans
 
     setIsSubmitting(true)
     try {
-      await onSubmitRating(selectedTransaction?.fieldId, rating, comment)
+      await onSubmitRating(selectedTransaction, rating, comment)
       setIsRatingDialogOpen(false)
       setRating(0)
       setComment("")
@@ -211,6 +212,7 @@ const HistoryUserList = () => {
   const [cartItemCount, setCartItemCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const { user } = useAuth()
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -224,8 +226,9 @@ const HistoryUserList = () => {
         console.log('Raw booking data:', response.data); // Log raw data
         const formattedTransactions = response.data.map(booking => ({
           id: booking.order_id,
+          bookingId: booking._id, // Add bookingId
           venueName: booking.venue_id?.partner_req_id?.namaVenue || 'Venue tidak tersedia',
-          field: booking.field_id?.map(f => f.name).join(', ') || 'Lapangan tidak tersedia',
+          field: [...new Set(booking.field_id?.map(f => f.name))].join(', ') || 'Lapangan tidak tersedia',
           fieldId: booking.field_id && booking.field_id.length > 0 ? booking.field_id[0]._id : null, // Pass first field's ID for rating
           venueLocation: booking.venue_id?.partner_req_id?.lokasiVenue || 'Lokasi tidak tersedia',
           date: new Date(booking.booking_date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
@@ -233,8 +236,9 @@ const HistoryUserList = () => {
           session: booking.booking_time,
           totalPrice: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(booking.total_price || 0),
           status: booking.status,
-          hasRated: false, // This should be determined by checking if a review exists for this booking/user/field
-          method: booking.payment_id?.method?.replace(/_/g, ' ').replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase()))) || 'N/A',
+          hasRated: booking.hasRated,
+          userRating: booking.userRating,
+          userComment: booking.userComment
         }));
         console.log('Formatted transactions:', formattedTransactions); // Log formatted data
         setTransactions(formattedTransactions);
@@ -298,7 +302,7 @@ const HistoryUserList = () => {
     setIsDetailDialogOpen(false)
     setIsRatingDialogOpen(true)
   }
-  const handleSubmitRating = async (fieldId, rating, comment) => {
+  const handleSubmitRating = async (transaction, rating, comment) => {
     try {
       // Get token from localStorage
       const token = localStorage.getItem('token')
@@ -306,7 +310,8 @@ const HistoryUserList = () => {
       const response = await axios.post(
         'http://localhost:3000/api/v1/reviews',
         {
-          field_id: fieldId,
+          booking_id: transaction.bookingId, // Add booking_id to the request
+          field_id: transaction.fieldId,
           rating: rating,
           comment: comment
         },
@@ -321,20 +326,20 @@ const HistoryUserList = () => {
       if (response.data.success) {
         // Update the transaction state to show it has been rated
         setTransactions(prevTransactions => 
-          prevTransactions.map(transaction => 
-            transaction.fieldId === fieldId 
+          prevTransactions.map(t => 
+            t.bookingId === transaction.bookingId // Use bookingId for matching
               ? { 
-                  ...transaction, 
+                  ...t, 
                   hasRated: true, 
                   userRating: rating, 
                   userComment: comment 
                 }
-              : transaction
+              : t
           )
         )
         
         // Update selected order detail if it's the same transaction
-        if (selectedOrderDetail && selectedOrderDetail.fieldId === fieldId) {
+        if (selectedOrderDetail && selectedOrderDetail.bookingId === transaction.bookingId) {
           setSelectedOrderDetail(prev => ({
             ...prev,
             hasRated: true,
@@ -442,23 +447,29 @@ const HistoryUserList = () => {
                         <Clock className="h-4 w-4 mr-2 text-gray-400" />
                         <span>{transaction.session}</span>
                       </div>
-
-                      <div className="flex items-center">
-                        <CreditCard className="h-4 w-4 mr-2 text-gray-400" />
-                        <span>{transaction.method}</span>
-                      </div>
                     </div>
 
                     {/* Show user rating if available */}
-                    {transaction.hasRated && (
+                    {transaction.hasRated ? (
                       <div className="mt-3 p-2 bg-blue-50 rounded-md">
-                        <div className="flex items-center space-x-2">
-                          <StarRating rating={transaction.userRating} readOnly size="h-4 w-4" />
-                          <span className="text-sm text-blue-700 font-medium">({transaction.userRating}/5)</span>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <svg
+                              key={i}
+                              className={`w-4 h-4 ${i < transaction.userRating ? 'text-yellow-400' : 'text-gray-300'}`}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                            </svg>
+                          ))}
+                          <span className="ml-2 text-sm font-medium text-gray-700">({transaction.userRating}/5)</span>
                         </div>
-                        {transaction.userComment && (
-                          <p className="text-sm text-blue-600 mt-1">{transaction.userComment}</p>
-                        )}
+                        <p className="mt-1 text-sm text-gray-600">{transaction.userComment}</p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 text-sm text-gray-500 italic">
+                        Anda belum memberikan rating.
                       </div>
                     )}
 
@@ -478,7 +489,16 @@ const HistoryUserList = () => {
                       Lihat Detail
                     </Button>
                     
-                    {!transaction.hasRated && (
+                    {transaction.hasRated ? (
+                        <Button
+                            disabled
+                            size="sm"
+                            className="bg-blue-100 text-blue-700 border border-blue-300"
+                        >
+                            <Star className="h-4 w-4 mr-1" />
+                            Sudah Rating
+                        </Button>
+                    ) : (
                       <Button
                         onClick={() => handleGiveRating(transaction)}
                         size="sm"
@@ -507,6 +527,7 @@ const HistoryUserList = () => {
           setIsDetailDialogOpen={setIsDetailDialogOpen}
           orderDetail={selectedOrderDetail}
           onGiveRating={handleGiveRating}
+          customerName={user?.name}
         />
 
         <RatingDialog

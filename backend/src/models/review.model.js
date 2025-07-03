@@ -7,6 +7,12 @@ const reviewSchema = new mongoose.Schema({
     required: true
   },
 
+  booking_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Booking',
+    required: true
+  },
+
   field_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Field',
