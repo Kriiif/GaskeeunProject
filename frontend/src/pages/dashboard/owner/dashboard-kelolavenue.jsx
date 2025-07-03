@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -27,6 +27,9 @@ const KelolaLapanganDashboard = () => {
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
     const { token } = useAuth();
+
+    // State untuk venue milik user
+    const [myVenue, setMyVenue] = useState(null);
 
     // State for Dialogs
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -127,6 +130,25 @@ const KelolaLapanganDashboard = () => {
         });
     };
 
+    // Ambil venue milik user saat komponen mount
+    useEffect(() => {
+        const fetchMyVenue = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            try {
+                const res = await fetch('http://localhost:3000/api/v1/venues/my', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (res.ok && data.venue) setMyVenue(data.venue);
+            } catch (err) {
+                // Optional: tampilkan error
+                // console.error('Gagal fetch venue:', err);
+            }
+        };
+        fetchMyVenue();
+    }, []);
+
     // --- Add Handlers ---
     const handleAddClick = () => {
         setAddFormData({
@@ -155,9 +177,29 @@ const KelolaLapanganDashboard = () => {
     };
 
     const handleAddLapanganSubmit = async () => {
+        // Validasi sederhana
+        if (
+            !addFormData.name ||
+            !addFormData.location ||
+            !addFormData.category ||
+            !addFormData.price ||
+            !addFormData.desc ||
+            !addFormData.open_hour ||
+            !addFormData.close_hour ||
+            !addFormData.image
+        ) {
+            alert('Semua field wajib diisi dan gambar wajib dipilih!');
+            return;
+        }
+
+        if (!myVenue || !myVenue._id) {
+            alert('Venue anda tidak ditemukan atau belum terdaftar. Silakan hubungi admin.');
+            return;
+        }
+
         const token = localStorage.getItem('token');
         if (!token) {
-            console.error("No token found");
+            alert('Anda harus login terlebih dahulu!');
             return;
         }
 
@@ -169,9 +211,8 @@ const KelolaLapanganDashboard = () => {
         formData.append('location', addFormData.location);
         formData.append('open_hour', addFormData.open_hour);
         formData.append('close_hour', addFormData.close_hour);
-        if (addFormData.image) {
-            formData.append('image', addFormData.image);
-        }
+        formData.append('image', addFormData.image); // field name HARUS 'image'
+        formData.append('venue_id', myVenue._id);
 
         try {
             const response = await fetch('http://localhost:3000/api/v1/fields', {
@@ -182,17 +223,30 @@ const KelolaLapanganDashboard = () => {
                 body: formData,
             });
 
-            if (response.ok) {
-                const result = await response.json();
-                console.log('Field added successfully:', result);
-                // TODO: Add the new field to the UI
+            const result = await response.json();
+
+            if (response.status === 201) {
+                // Sukses, reset form dan refresh data lapangan
+                setAddFormData({
+                    name: '',
+                    category: '',
+                    price: '',
+                    desc: '',
+                    location: '',
+                    open_hour: '',
+                    close_hour: '',
+                    image: null,
+                });
                 setIsAddDialogOpen(false);
+                // TODO: Panggil fungsi fetchLapangans() jika ada, agar data terbaru muncul
+                // fetchLapangans();
+                alert('Lapangan berhasil ditambahkan!');
             } else {
-                const errorResult = await response.json();
-                console.error('Failed to add field:', errorResult.message);
+                alert(result.message || 'Gagal menambah lapangan');
             }
         } catch (error) {
-            console.error('Error submitting form:', error);
+            alert('Terjadi kesalahan jaringan/server');
+            console.error(error);
         }
     };
 
@@ -436,11 +490,11 @@ const KelolaLapanganDashboard = () => {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="name" className="text-right font-medium">Nama</label>
-                            <Input id="name" value={addFormData.name} onChange={handleAddFormChange} className="col-span-3" />
+                            <Input id="name" name="name" value={addFormData.name} onChange={handleAddFormChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="location" className="text-right font-medium">Lokasi</label>
-                            <Input id="location" value={addFormData.location} onChange={handleAddFormChange} className="col-span-3" />
+                            <Input id="location" name="location" value={addFormData.location} onChange={handleAddFormChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="category" className="text-right font-medium">Kategori</label>
