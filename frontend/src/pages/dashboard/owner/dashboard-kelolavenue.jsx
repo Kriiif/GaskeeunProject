@@ -65,59 +65,26 @@ const KelolaLapanganDashboard = () => {
     const [activeSchedules, setActiveSchedules] = useState({});
 
     // Main data state
-    const [lapangans, setLapangans] = useState(() => {
-        const initialLapangans = [
-            {
-                id: 'lapangan1',
-                name: 'Lapangan 1',
-                image: '/venue/badmin1.jpg',
-                category: 'Badminton',
-                desc: 'Lapangan badminton indoor dengan standar nasional.',
-                rating: 4.5,
-                location: 'Jl. Kemuning',
-                openHour: '08:00',
-                closeHour: '22:00',
-                status: 'Online',
-                timeSlots: [
-                    { time: '06.00 - 08.30', status: 'available' },
-                    { time: '09.00 - 11.30', status: 'available' },
-                    { time: '12.00 - 14.30', status: 'booked' },
-                    { time: '15.00 - 17.30', status: 'available' },
-                    { time: '18.00 - 20.30', status: 'available' },
-                ],
-            },
-            {
-                id: 'lapangan2',
-                name: 'Lapangan 2',
-                image: '/venue/badmin1.jpg',
-                category: 'Badminton',
-                desc: 'Lapangan badminton outdoor dengan pemandangan taman.',
-                rating: 4.2,
-                location: 'Jl. Cempaka',
-                openHour: '09:00',
-                closeHour: '21:00',
-                status: 'Offline',
-                timeSlots: [
-                    { time: '08.00 - 10.00', status: 'available' },
-                    { time: '10.00 - 11.00', status: 'booked' },
-                    { time: '13.00 - 15.00', status: 'available' },
-                    { time: '15.00 - 17.00', status: 'booked' },
-                ],
-            },
-        ];
+    const [lapangans, setLapangans] = useState([]);
 
-        const initialActiveSchedules = {};
-        initialLapangans.forEach(lapangan => {
-            initialActiveSchedules[lapangan.id] = {};
-            lapangan.timeSlots.forEach(slot => {
-                if (slot.status === 'available') {
-                    initialActiveSchedules[lapangan.id][slot.time] = true;
+    // Fetch lapangan dari database sesuai venue_id
+    useEffect(() => {
+        if (!myVenue || !myVenue._id) return;
+        const fetchLapangans = async () => {
+            try {
+                const res = await fetch(`http://localhost:3000/api/v1/fields/venue/${myVenue._id}`);
+                const data = await res.json();
+                if (res.ok && Array.isArray(data.data)) {
+                    setLapangans(data.data);
+                } else {
+                    setLapangans([]);
                 }
-            });
-        });
-        setActiveSchedules(initialActiveSchedules);
-        return initialLapangans;
-    });
+            } catch (err) {
+                setLapangans([]);
+            }
+        };
+        fetchLapangans();
+    }, [myVenue]);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -163,7 +130,7 @@ const KelolaLapanganDashboard = () => {
                 const data = await res.json();
                 if (res.ok && data.venue) setMyVenue(data.venue);
             } catch (err) {
-                // console.error('Gagal fetch venue:', err);
+                console.error('Gagal fetch venue:', err);
             }
         };
         fetchMyVenue();
@@ -176,6 +143,7 @@ const KelolaLapanganDashboard = () => {
             category: '',
             price: '',
             desc: '',
+            location: '',
             open_hour: '',
             close_hour: '',
             image: null,
@@ -199,6 +167,7 @@ const KelolaLapanganDashboard = () => {
         // Validasi sederhana
         if (
             !addFormData.name ||
+            !addFormData.location ||
             !addFormData.category ||
             !addFormData.price ||
             !addFormData.desc ||
@@ -226,7 +195,7 @@ const KelolaLapanganDashboard = () => {
         formData.append('category', addFormData.category);
         formData.append('price', addFormData.price);
         formData.append('desc', addFormData.desc);
-        // formData.append('location', addFormData.location);
+        formData.append('location', addFormData.location);
         formData.append('open_hour', addFormData.open_hour);
         formData.append('close_hour', addFormData.close_hour);
         formData.append('image', addFormData.image); // field name HARUS 'image'
@@ -244,7 +213,6 @@ const KelolaLapanganDashboard = () => {
             const result = await response.json();
 
             if (response.status === 201) {
-                // Sukses, reset form dan refresh data lapangan
                 setAddFormData({
                     name: '',
                     category: '',
@@ -256,8 +224,12 @@ const KelolaLapanganDashboard = () => {
                     image: null,
                 });
                 setIsAddDialogOpen(false);
-                // TODO: Panggil fungsi fetchLapangans() jika ada, agar data terbaru muncul
-                // fetchLapangans();
+                // Fetch lapangan terbaru
+                if (myVenue && myVenue._id) {
+                    const res = await fetch(`http://localhost:3000/api/v1/fields/venue/${myVenue._id}`);
+                    const data = await res.json();
+                    if (res.ok && data.data) setLapangans(data.data);
+                }
                 alert('Lapangan berhasil ditambahkan!');
             } else {
                 alert(result.message || 'Gagal menambah lapangan');
@@ -273,7 +245,7 @@ const KelolaLapanganDashboard = () => {
         setEditingLapangan(lapangan);
         setEditFormData({
             name: lapangan.name,
-            // location: lapangan.location,
+            location: lapangan.location,
             category: lapangan.category,
             desc: lapangan.desc,
             status: lapangan.status,
@@ -350,7 +322,7 @@ const KelolaLapanganDashboard = () => {
 
     // Logika filter hanya berdasarkan nama lapangan
     const filteredLapangans = lapangans.filter(lapangan =>
-        lapangan.name.toLowerCase().includes(searchQuery.toLowerCase())
+        (lapangan.name || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -422,24 +394,26 @@ const KelolaLapanganDashboard = () => {
                         )}
 
                         {filteredLapangans.map((lapangan) => (
-                            <Card key={lapangan.id} className="p-6 hover:shadow-lg transition-shadow duration-200">
+                            <Card key={lapangan._id} className="p-6 hover:shadow-lg transition-shadow duration-200">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-start">
-                                        <img src={lapangan.image} alt={lapangan.name} className="w-32 h-24 object-cover rounded-lg mr-4 flex-shrink-0 shadow-sm" />
+                                        <img src={lapangan.image_url ? `http://localhost:3000/${lapangan.image_url}` : '/venue/badmin1.jpg'} alt={lapangan.name} className="w-32 h-24 object-cover rounded-lg mr-4 flex-shrink-0 shadow-sm" />
                                         <div className="flex-1">
                                             <div className="flex justify-between items-start mb-2">
                                                 <h3 className="text-xl font-semibold text-gray-800">{lapangan.name}</h3>
-                                                <Button variant="outline" className={`text-sm px-3 py-1 h-auto font-medium ml-6 ${lapangan.status === 'Online' ? 'text-green-700 border-green-300 bg-green-50 hover:bg-green-100' : 'text-red-700 border-red-300 bg-red-50 hover:bg-red-100'}`}>
-                                                    {lapangan.status}
+                                                {/* Status button bisa diatur dari is_active */}
+                                                <Button variant="outline" className={`text-sm px-3 py-1 h-auto font-medium ml-6 ${lapangan.is_active ? 'text-green-700 border-green-300 bg-green-50 hover:bg-green-100' : 'text-red-700 border-red-300 bg-red-50 hover:bg-red-100'}`}>
+                                                    {lapangan.is_active ? 'Online' : 'Offline'}
                                                 </Button>
                                             </div>
                                             <div className="flex items-center text-gray-600 text-sm mb-1">
                                                 <Star className="w-4 h-4 text-yellow-500 mr-1" fill="currentColor" />
-                                                <span className="font-medium">{lapangan.rating}</span>
+                                                {/* Rating bisa diisi manual atau dari backend jika ada */}
+                                                <span className="font-medium">-</span>
                                                 <span className="mx-2">•</span>
                                                 <span>{lapangan.location}</span>
                                                 <span className="mx-2">•</span>
-                                                <span>{lapangan.openHour} - {lapangan.closeHour}</span>
+                                                <span>{lapangan.open_hour} - {lapangan.close_hour}</span>
                                             </div>
                                             <div className="text-sm text-gray-500">
                                                 <span className="font-medium">{lapangan.category}</span>
@@ -456,40 +430,7 @@ const KelolaLapanganDashboard = () => {
                                         </Button>
                                     </div>
                                 </div>
-
-                                <div className="mt-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                                    <div className="flex items-center space-x-3">
-                                        <span className="text-sm font-medium text-gray-700">Tanggal:</span>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-[200px] justify-start text-left font-normal">
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {selectedDate ? formatDateFull(selectedDate) : <span>Pilih Tanggal</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0">
-                                                <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} initialFocus disabled={(date) => date < new Date()} />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-700 flex-shrink-0">
-                                        Jadwal Aktif: <span className="font-bold text-green-600">{Object.values(activeSchedules[lapangan.id] || {}).filter(isActive => isActive).length}</span>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-4 pt-4 border-t border-gray-200">
-                                    {lapangan.timeSlots.map((slot, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
-                                            <label htmlFor={`slot-${lapangan.id}-${idx}`} className="flex-1 cursor-pointer">
-                                                <span className="font-semibold text-sm block text-gray-800">{slot.time}</span>
-                                                <span className={`text-xs font-medium ${slot.status === 'available' ? 'text-green-600' : slot.status === 'booked' ? 'text-orange-600' : 'text-gray-500'}`}>
-                                                    {slot.status === 'booked' ? 'Booked' : slot.status === 'filled' ? 'Penuh' : 'Tersedia'}
-                                                </span>
-                                            </label>
-                                            <Checkbox id={`slot-${lapangan.id}-${idx}`} checked={activeSchedules[lapangan.id]?.[slot.time] || false} onCheckedChange={(checked) => handleCheckboxChange(lapangan.id, slot.time, checked)} disabled={slot.status !== 'available'} />
-                                        </div>
-                                    ))}
-                                </div>
+                                {/* Hilangkan timeSlots mapping karena field dari DB tidak punya timeSlots default */}
                             </Card>
                         ))}
                     </div>
@@ -510,10 +451,10 @@ const KelolaLapanganDashboard = () => {
                             <label htmlFor="name" className="text-right font-medium">Nama</label>
                             <Input id="name" name="name" value={addFormData.name} onChange={handleAddFormChange} className="col-span-3" />
                         </div>
-                        {/* <div className="grid grid-cols-4 items-center gap-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="location" className="text-right font-medium">Lokasi</label>
                             <Input id="location" name="location" value={addFormData.location} onChange={handleAddFormChange} className="col-span-3" />
-                        </div> */}
+                        </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="category" className="text-right font-medium">Kategori</label>
                             <Input id="category" name="category" value={addFormData.category} onChange={handleAddFormChange} className="col-span-3" />
