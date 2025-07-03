@@ -19,6 +19,10 @@ const CustomDropdownOwner = () => {
         navigate('/verification'); // Adjust the route as needed
     };
 
+    const handleMovePage = () => {
+        navigate("/");
+    };
+
     return (
         <div className="p-4 border-t border-gray-200 text-center">
             <DropdownMenu>
@@ -33,6 +37,9 @@ const CustomDropdownOwner = () => {
                     </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48">
+                    <DropdownMenuItem onClick={handleMovePage}>
+                        Dashboard Penyewa
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleChangePassword}>
                         Ganti Password
                     </DropdownMenuItem>

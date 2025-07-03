@@ -10,6 +10,7 @@ import errorMiddleware from './middlewares/error.middleware.js'
 import cookieParser from 'cookie-parser'
 import fieldRoutes from './routes/field.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import partnerReqRoutes from './routes/partner_req.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 
 
@@ -31,6 +32,7 @@ app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/posts', postRoutes)
 app.use('/api/v1/fields', fieldRoutes);
 app.use('/api/v1/payment', paymentRoutes);
+app.use('/api/v1/partnership', partnerReqRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 
 // Middleware untuk error handling

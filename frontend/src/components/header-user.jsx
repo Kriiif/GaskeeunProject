@@ -66,6 +66,9 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
                         <DropdownMenuItem onClick={() => navigate('/history-user')}>
                             <span>Riwayat Reservasi</span>
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/dashboard-main')} >
+                            <span>Dashboard Pemilik Venue</span>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout}>
                             <span>Keluar</span>

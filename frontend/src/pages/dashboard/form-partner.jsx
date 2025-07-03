@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { HeaderUser } from '@/components/header-user'; // Pastikan path ini benar sesuai struktur proyek Anda
+import axios from 'axios'; // Pastikan Anda telah menginstal axios
+import { useNavigate } from 'react-router-dom';
 
 const FormPartner = () => {
   // State untuk semua bidang formulir (controlled components)
@@ -9,12 +11,12 @@ const FormPartner = () => {
     nomorTelepon: '',
     email: '',
     lokasiVenue: '',
+    nomorIndukBerusaha: '', // tambahkan ini ke state
   });
 
   // State untuk nama file yang dipilih
   const [fotoSuratTanahFileName, setFotoSuratTanahFileName] = useState('');
   const [fotoKTPFileName, setFotoKTPFileName] = useState('');
-  const [nomorIndukBerusahaFileName, setNomorIndukBerusahaFileName] = useState('');
   const [fotoVenueFileName, setFotoVenueFileName] = useState('');
 
   // State untuk kesalahan validasi
@@ -23,6 +25,8 @@ const FormPartner = () => {
   // State untuk status pengiriman formulir
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionMessage, setSubmissionMessage] = useState({ type: '', text: '' }); // 'success' atau 'error'
+
+  const navigate = useNavigate();
 
   // Handler untuk perubahan input teks
   const handleChange = (e) => {
@@ -66,65 +70,61 @@ const FormPartner = () => {
       newErrors.email = 'Format email tidak valid.'; isValid = false;
     }
     if (!formData.lokasiVenue.trim()) { newErrors.lokasiVenue = 'Lokasi Venue wajib diisi.'; isValid = false; }
+    if (!formData.nomorIndukBerusaha.trim()) { newErrors.nomorIndukBerusaha = 'Nomor Induk Berusaha wajib diisi.'; isValid = false; }
 
     // Validasi input file
     if (!fotoSuratTanahFileName) { newErrors.fotoSuratTanah = 'Foto Surat Tanah wajib diunggah.'; isValid = false; }
     if (!fotoKTPFileName) { newErrors.fotoKTP = 'Foto KTP wajib diunggah.'; isValid = false; }
-    if (!nomorIndukBerusahaFileName) { newErrors.nomorIndukBerusaha = 'Nomor Induk Berusaha wajib diisi.'; isValid = false; }
     if (!fotoVenueFileName) { newErrors.fotoVenue = 'Foto Venue wajib diunggah.'; isValid = false; }
 
     setErrors(newErrors);
     return isValid; // Mengembalikan true jika tidak ada error
   };
 
-  // Handler untuk pengiriman formulir
   const handleSubmit = async (event) => {
-    event.preventDefault(); // Mencegah perilaku default form submission (reload halaman)
-    setSubmissionMessage({ type: '', text: '' }); // Hapus pesan sebelumnya
+    event.preventDefault();
+    setSubmissionMessage({ type: '', text: '' });
 
     if (!validateForm()) {
       setSubmissionMessage({ type: 'error', text: 'Mohon lengkapi semua bidang yang wajib diisi.' });
-      return; // Hentikan pengiriman jika validasi gagal
+      return;
     }
 
-    setIsSubmitting(true); // Atur status loading
+    setIsSubmitting(true);
 
-    // --- LOGIKA PENGIRIMAN FORMULIR SEBENARNYA (Simulasi) ---
     try {
-      // Di aplikasi nyata, Anda akan membuat objek FormData untuk mengirim file
-      // const apiFormData = new FormData();
-      // apiFormData.append('namaPemilik', formData.namaPemilik);
-      // apiFormData.append('fotoSuratTanah', document.getElementById('fotoSuratTanah').files[0]);
-      // ... tambahkan semua bidang teks dan file lainnya
+      // Buat FormData untuk mengirim file dan data teks
+      const apiFormData = new FormData();
+      apiFormData.append('namaPemilik', formData.namaPemilik);
+      apiFormData.append('npwp', formData.npwp);
+      apiFormData.append('nomorTelepon', formData.nomorTelepon);
+      apiFormData.append('email', formData.email);
+      apiFormData.append('lokasiVenue', formData.lokasiVenue);
+      apiFormData.append('nomorIndukBerusaha', formData.nomorIndukBerusaha);
 
-      // Contoh panggilan API (Anda perlu mengganti ini dengan endpoint API Anda yang sebenarnya)
-      // const response = await fetch('/api/partnership', {
-      //   method: 'POST',
-      //   body: apiFormData, // Gunakan apiFormData untuk mengirim file
-      // });
+      // Ambil file dari input
+      apiFormData.append('fotoSuratTanah', document.getElementById('fotoSuratTanah').files[0]);
+      apiFormData.append('fotoKTP', document.getElementById('fotoKTP').files[0]);
+      apiFormData.append('fotoVenue', document.getElementById('fotoVenue').files[0]);
 
-      // const result = await response.json(); // Proses respons dari API
+      // Kirim ke backend (ganti URL sesuai endpoint backend kamu)
+      const response = await axios.post('http://localhost:3000/api/v1/partnership', apiFormData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
-      // Simulasi respons sukses dari API
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulasi penundaan jaringan
-      const result = { success: true, message: 'Permohonan partnership berhasil dikirim!' };
+      const result = response.data;
 
-      if (result.success) {
-        console.log('Data formulir berhasil dikirim:', {
-          ...formData,
-          fotoSuratTanah: fotoSuratTanahFileName,
-          fotoKTP: fotoKTPFileName,
-          suratIzinUsaha: nomorIndukBerusaha,
-          fotoVenue: fotoVenueFileName,
-        });
-        setSubmissionMessage({ type: 'success', text: result.message });
-        // Opsional: Reset formulir setelah pengiriman berhasil
-        setFormData({ namaPemilik: '', npwp: '', nomorTelepon: '', email: '', lokasiVenue: '' });
+      if (response.status === 201 && result.message) {
+        setSubmissionMessage({ type: 'success', text: result.message || 'Permohonan partnership berhasil dikirim!' });
+        setFormData({ namaPemilik: '', npwp: '', nomorTelepon: '', email: '', lokasiVenue: '', nomorIndukBerusaha: '' });
         setFotoSuratTanahFileName('');
         setFotoKTPFileName('');
-        setnomorIndukBerusaha('');
         setFotoVenueFileName('');
-        setErrors({}); // Hapus semua error
+        setErrors({});
+        // Redirect ke dashboard setelah 1.5 detik
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
       } else {
         setSubmissionMessage({ type: 'error', text: result.message || 'Terjadi kesalahan saat mengirim permohonan.' });
       }
@@ -132,9 +132,67 @@ const FormPartner = () => {
       console.error('Submission error:', error);
       setSubmissionMessage({ type: 'error', text: 'Terjadi kesalahan jaringan atau server.' });
     } finally {
-      setIsSubmitting(false); // Hapus status loading
+      setIsSubmitting(false);
     }
   };
+  // // Handler untuk pengiriman formulir
+  // const handleSubmit = async (event) => {
+  //   event.preventDefault(); // Mencegah perilaku default form submission (reload halaman)
+  //   setSubmissionMessage({ type: '', text: '' }); // Hapus pesan sebelumnya
+
+  //   if (!validateForm()) {
+  //     setSubmissionMessage({ type: 'error', text: 'Mohon lengkapi semua bidang yang wajib diisi.' });
+  //     return; // Hentikan pengiriman jika validasi gagal
+  //   }
+
+  //   setIsSubmitting(true); // Atur status loading
+
+  //   // --- LOGIKA PENGIRIMAN FORMULIR SEBENARNYA (Simulasi) ---
+  //   try {
+  //     // Di aplikasi nyata, Anda akan membuat objek FormData untuk mengirim file
+  //     // const apiFormData = new FormData();
+  //     // apiFormData.append('namaPemilik', formData.namaPemilik);
+  //     // apiFormData.append('fotoSuratTanah', document.getElementById('fotoSuratTanah').files[0]);
+  //     // ... tambahkan semua bidang teks dan file lainnya
+
+  //     // Contoh panggilan API (Anda perlu mengganti ini dengan endpoint API Anda yang sebenarnya)
+  //     // const response = await fetch('/api/partnership', {
+  //     //   method: 'POST',
+  //     //   body: apiFormData, // Gunakan apiFormData untuk mengirim file
+  //     // });
+
+  //     // const result = await response.json(); // Proses respons dari API
+
+  //     // Simulasi respons sukses dari API
+  //     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulasi penundaan jaringan
+  //     const result = { success: true, message: 'Permohonan partnership berhasil dikirim!' };
+
+  //     if (result.success) {
+  //       console.log('Data formulir berhasil dikirim:', {
+  //         ...formData,
+  //         fotoSuratTanah: fotoSuratTanahFileName,
+  //         fotoKTP: fotoKTPFileName,
+  //         nomorIndukBerusaha: nomorIndukBerusahaFileName,
+  //         fotoVenue: fotoVenueFileName,
+  //       });
+  //       setSubmissionMessage({ type: 'success', text: result.message });
+  //       // Opsional: Reset formulir setelah pengiriman berhasil
+  //       setFormData({ namaPemilik: '', npwp: '', nomorTelepon: '', email: '', lokasiVenue: '' });
+  //       setFotoSuratTanahFileName('');
+  //       setFotoKTPFileName('');
+  //       setNomorIndukBerusahaFileName('');
+  //       setFotoVenueFileName('');
+  //       setErrors({}); // Hapus semua error
+  //     } else {
+  //       setSubmissionMessage({ type: 'error', text: result.message || 'Terjadi kesalahan saat mengirim permohonan.' });
+  //     }
+  //   } catch (error) {
+  //     console.error('Submission error:', error);
+  //     setSubmissionMessage({ type: 'error', text: 'Terjadi kesalahan jaringan atau server.' });
+  //   } finally {
+  //     setIsSubmitting(false); // Hapus status loading
+  //   }
+  // };
 
   // Fungsi helper untuk kelas CSS input file berdasarkan status
   const fileInputClasses = (fileName, error) => `relative border rounded py-2 px-3 text-gray-700 overflow-hidden cursor-pointer
@@ -151,7 +209,7 @@ const FormPartner = () => {
     <div className="min-h-screen flex flex-col items-center py-10">
       {/* HeaderUser component */}
       {/* Pastikan HeaderUser menerima props yang sesuai atau sesuaikan di sini jika diperlukan */}
-      <HeaderUser cartItemCount={0} onCartClick={() => {}} />
+      <HeaderUser cartItemCount={0} onCartClick={() => { }} />
 
       {/* Card Formulir Utama */}
       <div className="bg-white shadow-md rounded-lg p-8 mt-20 w-full max-w-xl"> {/* Lebar card diubah menjadi max-w-xl */}
@@ -235,14 +293,14 @@ const FormPartner = () => {
               <label htmlFor="nomorIndukBerusaha" className="block text-gray-700 text-sm font-bold mb-2">
                 Nomor Induk Berusaha <span className="text-red-500">*</span>
               </label>
-                <input
-                  type="text"
-                  id="nomorIndukBerusaha"
-                  value={formData.nomorIndukBerusaha}
-                  onChange={handleChange}
-                  className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.nomorIndukBerusaha ? 'border-red-500' : ''}`}
-                  placeholder="Masukkan nomor Induk Berusaha Anda"
-                />
+              <input
+                type="text"
+                id="nomorIndukBerusaha"
+                value={formData.nomorIndukBerusaha}
+                onChange={handleChange}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.nomorIndukBerusaha ? 'border-red-500' : ''}`}
+                placeholder="Masukkan nomor Induk Berusaha Anda"
+              />
               {errors.nomorIndukBerusaha && <p className="text-red-500 text-xs italic mt-1">{errors.nomorIndukBerusaha}</p>}
             </div>
 

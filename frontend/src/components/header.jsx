@@ -12,6 +12,10 @@ const Header = ({ cartItemCount, onCartClick }) => {
         navigate("/login");
     }
 
+    const handleSignup = () => {
+        navigate("/signup");
+    }
+
   return (
     <nav className="bg-white shadow-md py-5 px-6 flex justify-between items-center fixed w-full top-0 z-50">
         <div className="flex items-center">
@@ -41,7 +45,7 @@ const Header = ({ cartItemCount, onCartClick }) => {
                 )}
             </Button>
             <Button variant="ghost" className="font-medium" onClick={handleLogin} >Masuk</Button>
-            <Button className="bg-green-600 hover:bg-green-700 font-medium">Daftar</Button>
+            <Button className="bg-green-600 hover:bg-green-700 font-medium" onClick={handleSignup}>Daftar</Button>
         </div>
     </nav>
   );
