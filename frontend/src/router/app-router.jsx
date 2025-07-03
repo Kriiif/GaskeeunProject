@@ -18,6 +18,7 @@ import DashboardListOwnerVenue from '../pages/dashboard/superAdmin/dashboard-lis
 import Dashboard from '../pages/dashboard/dashboard'
 import FormPartner from '../pages/dashboard/form-partner'
 import VenueDetailPage from '../pages/product/venue-detail'
+import OrderStatusPage from '../pages/order-status/order-status'
 
 export default function AppRouter() {
     return (
@@ -38,6 +39,7 @@ export default function AppRouter() {
                 <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/history-user" element={<HistoryUserList />} />
                 <Route path="/form-partner" element={<FormPartner />} />
+                <Route path="/order/status" element={<OrderStatusPage />} />
 
                 {/* route halaman untuk pemilik venue */}
                 <Route path="/dashboard-kelolavenue" element={<KelolaLapanganDashboard />} />

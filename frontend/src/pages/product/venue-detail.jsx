@@ -43,7 +43,7 @@ import axios from 'axios';
 const VenueDetailPage = () => {
   const { venueId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   
   const [venue, setVenue] = useState(null);
   const [fields, setFields] = useState([]);
@@ -51,7 +51,59 @@ const VenueDetailPage = () => {
   const [error, setError] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  // Fetch cart from DB for logged-in users
+  useEffect(() => {
+    const fetchCart = async () => {
+      if (user && token) {
+        try {
+          const response = await axios.get('http://localhost:3000/api/v1/cart', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (response.data.success) {
+            setCartItems(response.data.data.items);
+          }
+        } catch (error) {
+          console.error("Failed to fetch cart:", error);
+          // Silently fail, user can still browse. Cart will appear empty.
+        }
+      } else {
+        // If user logs out, clear the cart
+        setCartItems([]);
+      }
+    };
+
+    fetchCart();
+  }, [user, token]);
   
+  // Helper function to generate time slots
+  const generateTimeSlots = (openHour, closeHour, fieldId, price) => {
+    const slots = [];
+    if (!openHour || !closeHour) {
+      return [];
+    }
+
+    let start = parseInt(openHour.split(':')[0]);
+    let end = parseInt(closeHour.split(':')[0]);
+
+    // If end hour is 00, it means midnight of the next day.
+    if (end === 0) {
+      end = 24;
+    }
+
+    for (let hour = start; hour < end; hour++) {
+      const nextHour = hour + 1;
+      const time = `${String(hour).padStart(2, '0')}:00 - ${String(nextHour > 24 ? nextHour - 24 : nextHour).padStart(2, '0')}:00`;
+      slots.push({
+        id: `${fieldId}-${String(hour).padStart(2, '0')}00`,
+        time: time,
+        available: true, // Default to available, can be updated with real booking data
+        price: price
+      });
+    }
+    return slots;
+  };
+
   // Date selection
   const today = new Date();
   const daysInIndonesian = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -128,12 +180,7 @@ const VenueDetailPage = () => {
                 openHour: field.open_hour,
                 closeHour: field.close_hour,
                 availabilityStatus: "Tersedia", // You can calculate this based on bookings
-                timeSlots: [
-                  { id: `${field._id}-1800`, time: "18:00 - 19:00", available: true, price: `Rp. ${field.price.toLocaleString('id-ID')}` },
-                  { id: `${field._id}-1900`, time: "19:00 - 20:00", available: Math.random() > 0.3, price: `Rp. ${field.price.toLocaleString('id-ID')}` },
-                  { id: `${field._id}-2000`, time: "20:00 - 21:00", available: Math.random() > 0.3, price: `Rp. ${field.price.toLocaleString('id-ID')}` },
-                  { id: `${field._id}-2100`, time: "21:00 - 22:00", available: true, price: `Rp. ${field.price.toLocaleString('id-ID')}` },
-                ]
+                timeSlots: generateTimeSlots(field.open_hour, field.close_hour, field._id, field.price)
               }));
               
               setFields(formattedFields);
@@ -161,32 +208,87 @@ const VenueDetailPage = () => {
   }, [venueId]);
 
   // Cart functions
-  const handleSlotClick = (fieldId, fieldName, slot) => {
+  const handleSlotClick = async (field, slot) => {
     if (!slot.available) return;
 
+    // If user is not logged in, redirect to login page
+    if (!user) {
+      navigate('/login', { state: { from: `/venues/${venueId}` } });
+      return;
+    }
+
     const newItem = {
-      slotId: slot.id,
-      fieldId: fieldId,
-      fieldName: fieldName,
+      venueId: venue.id,
+      fieldId: field.id,
+      fieldName: field.name,
+      fieldImage: field.image,
       date: format(selectedDateObject, "dd MMMM yyyy", { locale: id }),
       time: slot.time,
-      price: slot.price,
+      price: `Rp. ${slot.price.toLocaleString('id-ID')}`,
+      numericPrice: slot.price
     };
 
+    // DB operations for logged-in users
     const existingItemIndex = cartItems.findIndex(
-      (item) => item.slotId === newItem.slotId && item.fieldId === newItem.fieldId && item.date === newItem.date
+      (item) => item.fieldId === newItem.fieldId && item.date === newItem.date && item.time === newItem.time
     );
 
-    if (existingItemIndex > -1) {
-      const updatedCart = cartItems.filter((_, index) => index !== existingItemIndex);
-      setCartItems(updatedCart);
-    } else {
-      setCartItems([...cartItems, newItem]);
+    try {
+      if (existingItemIndex > -1) {
+        // Item exists, so remove it
+        const itemToRemove = cartItems[existingItemIndex];
+        await axios.post('http://localhost:3000/api/v1/cart/remove', 
+          { fieldId: itemToRemove.fieldId, date: itemToRemove.date, time: itemToRemove.time },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const updatedCart = cartItems.filter((_, index) => index !== existingItemIndex);
+        setCartItems(updatedCart);
+      } else {
+        // Item doesn't exist, so add it
+        const response = await axios.post('http://localhost:3000/api/v1/cart/add', 
+          newItem, 
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // Make sure to update the cart with the latest full state from the server
+        if (response.data.success) {
+          setCartItems(response.data.data.items);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update cart in DB:", error);
     }
   };
 
-  const removeFromCart = (slotId, fieldId, date) => {
-    setCartItems(cartItems.filter(item => !(item.slotId === slotId && item.fieldId === fieldId && item.date === date)));
+  const removeFromCart = async (itemToRemove) => {
+    // This function now only works for logged-in users
+    if (!user) return;
+
+    // The backend expects the fieldId as a string, not an object.
+    const fieldIdToRemove = itemToRemove.fieldId?._id || itemToRemove.fieldId;
+
+    try {
+      await axios.post('http://localhost:3000/api/v1/cart/remove', 
+        { fieldId: fieldIdToRemove, date: itemToRemove.date, time: itemToRemove.time },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // After successful removal from DB, update the local state
+      setCartItems(currentCartItems => 
+        currentCartItems.filter(item => {
+          const itemFieldId = item.fieldId?._id || item.fieldId;
+          return !(
+            itemFieldId === fieldIdToRemove && 
+            item.date === itemToRemove.date && 
+            item.time === itemToRemove.time
+          );
+        })
+      );
+    } catch (error) {
+      console.error("Failed to remove item from DB:", error);
+    }
+  };
+
+  const calculateTotal = () => {
+    return cartItems.reduce((total, item) => total + item.numericPrice, 0);
   };
 
   if (loading) {
@@ -361,7 +463,7 @@ const VenueDetailPage = () => {
                           <p className="text-xs text-gray-500">{field.category}</p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right ml-auto">
                         <p className="text-lg font-bold text-green-600">Rp {field.price.toLocaleString('id-ID')}</p>
                         <p className="text-xs text-gray-500">per jam</p>
                       </div>
@@ -379,22 +481,27 @@ const VenueDetailPage = () => {
                       
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
                         {field.timeSlots.map((slot) => {
-                          const isSelectedInCart = cartItems.some(
-                            (item) => item.slotId === slot.id && item.fieldId === field.id && item.date === format(selectedDateObject, "dd MMMM yyyy", { locale: id })
-                          );
+                          const isSelectedInCart = cartItems.some((item) => {
+                            // The backend now populates fieldId, so it's an object.
+                            // We need to compare the _id of the populated object.
+                            const itemFieldId = item.fieldId?._id || item.fieldId;
+                            return itemFieldId === field.id && 
+                              item.date === format(selectedDateObject, "dd MMMM yyyy", { locale: id }) && 
+                              item.time === slot.time;
+                          });
+                          
                           return (
                             <Button
                               key={slot.id}
                               variant={slot.available ? "outline" : "secondary"}
-                              onClick={() => handleSlotClick(field.id, field.name, slot)}
-                              className={`h-auto py-2 text-sm
-                                ${slot.available ? 'border-green-500 text-green-700 hover:bg-green-50' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}
-                                ${isSelectedInCart ? 'bg-green-50 ring-2 ring-green-400' : ''}
+                              onClick={() => handleSlotClick(field, slot)}
+                              className={`h-auto py-2 text-sm flex flex-col items-start
+                                ${slot.available ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}
+                                ${isSelectedInCart ? 'bg-green-50 ring-2 ring-green-400 border-green-500 text-green-700' : ''}
                               `}
                               disabled={!slot.available}
                             >
-                              {slot.time}
-                              {slot.price && <div className="text-xs font-normal mt-1"></div>}
+                              <div>{slot.time}</div>
                             </Button>
                           );
                         })}
@@ -440,11 +547,11 @@ const VenueDetailPage = () => {
 
       {/* Cart Sheet */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent side="right">
+        <SheetContent side="right" className="flex flex-col">
           <SheetHeader>
             <SheetTitle className="text-2xl font-bold">JADWAL DIPILIH</SheetTitle>
             <SheetDescription className="text-gray-600">
-              Berikut adalah jadwal yang Anda pilih.
+              {user ? "Berikut adalah jadwal yang Anda pilih." : "Silakan masuk untuk menambahkan jadwal."}
             </SheetDescription>
           </SheetHeader>
 
@@ -454,34 +561,46 @@ const VenueDetailPage = () => {
               <p>Belum ada jadwal di keranjang.</p>
             </div>
           ) : (
-            <div className="py-4 space-y-4">
-              {cartItems.map((item) => (
-                <Card key={`${item.slotId}-${item.date}`} className="p-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-gray-800">{item.fieldName}</p>
-                    <p className="text-sm text-gray-700">{item.date} | {item.time}</p>
-                    <p className="text-md font-bold text-green-700">{item.price}</p>
+            <div className="flex-grow overflow-y-auto -mx-6 px-6 py-4 space-y-4">
+              {cartItems.map((item, index) => (
+                <div key={`${item.fieldId}-${item.date}-${item.time}-${index}`} className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <img src={item.fieldImage} alt={item.fieldName} className="w-20 h-20 object-cover rounded-md flex-shrink-0" />
+                  <div className="flex-grow">
+                    <p className="font-bold text-gray-800">{item.fieldName}</p>
+                    <p className="text-sm text-gray-500">{item.date}</p>
+                    <p className="text-sm text-gray-500">{item.time}</p>
+                    <p className="text-md font-semibold text-green-600 mt-1">{item.price}</p>
                   </div>
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => removeFromCart(item.slotId, item.fieldId, item.date)} 
-                    className="text-red-500 hover:text-red-700"
+                    onClick={() => removeFromCart(item)} 
+                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 h-8 w-8 p-0 -mr-2 -mt-2 flex-shrink-0"
                   >
-                    Hapus
+                    <span className="text-2xl">×</span>
                   </Button>
-                </Card>
+                </div>
               ))}
             </div>
           )}
 
-          <SheetFooter className="mt-6 border-t pt-4">
-            {cartItems.length > 0 && (
-              <Button className="bg-green-600 hover:bg-green-700 text-white w-full">
-                Lanjutkan Pembayaran ({cartItems.length} Slot)
-              </Button>
-            )}
-          </SheetFooter>
+          {cartItems.length > 0 && user && (
+            <SheetFooter className="mt-auto border-t pt-4 bg-white">
+              <div className="w-full space-y-4">
+                <div className="flex justify-between items-center text-lg font-semibold">
+                  <span>Total</span>
+                  <span>Rp {calculateTotal().toLocaleString('id-ID')}</span>
+                </div>
+                <Button 
+                  onClick={() => navigate('/checkout', { state: { cartItems, venue } })}
+                  className="bg-green-600 hover:bg-green-700 text-white w-full text-base py-3"
+                  disabled={!user}
+                >
+                  Lanjutkan Pembayaran
+                </Button>
+              </div>
+            </SheetFooter>
+          )}
         </SheetContent>
       </Sheet>
     </div>
