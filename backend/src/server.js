@@ -14,6 +14,7 @@ import partnerReqRoutes from './routes/partner_req.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import venueRoutes from './routes/venue.routes.js';
 import cartRoutes from './routes/cart.routes.js';
+import bookingRoutes from './routes/booking.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import fieldTimesRoutes from './routes/field_times.routes.js';
 
@@ -40,8 +41,6 @@ app.use('/api/v1/partnership', partnerReqRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/venues', venueRoutes);
 app.use('/api/v1/cart', cartRoutes);
-app.use('/api/v1/dashboard/owner', dashboardRoutes);
-app.use('/api/v1/field_times', fieldTimesRoutes);
 
 // Middleware untuk error handling
 app.use(errorMiddleware)

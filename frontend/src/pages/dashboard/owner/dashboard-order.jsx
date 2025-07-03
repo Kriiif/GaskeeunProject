@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Home, List, ShoppingCart, User, Menu, Bell, Search, Filter, X, Calendar, MapPin, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom'; // Add this import
-import  CustomSidebar  from '@/components/sidebar'; // Import DropdownMenuItem
+import CustomSidebar from '@/components/sidebar'; // Import DropdownMenuItem
+import axios from 'axios'; // Import axios
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 const DashboardOrder = () => {
@@ -20,147 +20,58 @@ const DashboardOrder = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [venueFilter, setVenueFilter] = useState('all');
     const [orderDetail, setOrderDetail] = useState(null);
     const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-    const [detail, seeDetail] = useState({
-        id: '',
-        date: '',
-        customer: '',
-        venueId: '',
-        totalPrice: '',
-        method: '',
-        status: '',
-    })
+
+    const handleSearch = (e) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const handleStatusFilterChange = (value) => {
+        setStatusFilter(value);
+    };
+
+    const handleDetailClick = (order) => {
+        setOrderDetail(order);
+        setIsDetailDialogOpen(true);
+    };
+
     const navigate = useNavigate(); // Initialize useNavigate hook
 
     // Sample orders data
-    const [orders] = useState([
-        {
-            id: '#1',
-            customer: 'Pham Hanni',
-            venueId: 'Lapangan 1',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'BCA',
-            phone: '081234567890',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#2',
-            customer: 'Heru Budi',
-            venueId: 'Lapangan 2',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'BNI',
-            phone: '081234567891',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#3',
-            customer: 'Pham Minji',
-            venueId: 'Lapangan 1',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'Mandiri',
-            phone: '081234567892',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#4',
-            customer: 'Pham Uri',
-            venueId: 'Lapangan 1',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'Bank Jago',
-            phone: '081234567893',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#5',
-            customer: 'Pham Haerin',
-            venueId: 'Lapangan 2',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'Bank Miun',
-            phone: '081234567894',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#6',
-            customer: 'Pham Haerin',
-            venueId: 'Lapangan 2',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'BCA',
-            phone: '081234567895',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#7',
-            customer: 'Pham Haerin',
-            venueId: 'Lapangan 2',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'BNI',
-            phone: '081234567896',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#8',
-            customer: 'Pham Haerin',
-            venueId: 'Lapangan 2',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'Bank Jago',
-            phone: '081234567897',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#9',
-            customer: 'Pham Haerin',
-            venueId: 'Lapangan 2',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'Bank Miun',
-            phone: '081234567898',
-            totalPrice: 'Rp 150.000'
-        },
-        {
-            id: '#10',
-            customer: 'Pham Haerin',
-            venueId: 'Lapangan 2',
-            date: '26 June 2025',
-            session: '10.00 - 11.00',
-            method: 'Bank Saleh',
-            phone: '081234567899',
-            totalPrice: 'Rp 150.000'
-        }
-    ]);
+    const [orders, setOrders] = useState([]);
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const response = await axios.get('http://localhost:3000/api/v1/bookings');
+                const formattedOrders = response.data.map(order => ({
+                    id: order.order_id,
+                    customer: order.user_id.name,
+                    fieldName: order.field_id.name, // Add fieldName
+                    date: new Date(order.booking_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }),
+                    session: order.booking_time,
+                    totalPrice: `Rp ${order.field_id.price.toLocaleString('id-ID')}`,
+                    status: order.status
+                }));
+                setOrders(formattedOrders);
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+            }
+        };
+
+        fetchOrders();
+    }, []);
 
     // Filter orders based on search and filters
     const filteredOrders = orders.filter(order => {
         const matchesSearch = order.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                             order.venueId.toLowerCase().includes(searchQuery.toLowerCase());
-        
+                             (order.fieldName && order.fieldName.toLowerCase().includes(searchQuery.toLowerCase()));
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-        const matchesVenue = venueFilter === 'all' || order.venueId === venueFilter;
-        
-        return matchesSearch && matchesStatus && matchesVenue;
-    });
 
-    // function for handle order detail
-    const handleDetailClick = (order) => {
-        setOrderDetail(order);
-        seeDetail({
-            date: order.date,
-            customer: order.customer,
-            venueId: order.venueId,
-            status: order.status
-        });
-        setIsDetailDialogOpen(true);
-    };
+        return matchesSearch && matchesStatus;
+    });
 
     return (
         <div className="flex min-h-screen font-sans relative">
@@ -234,14 +145,16 @@ const DashboardOrder = () => {
                                 <span className="text-sm font-medium text-gray-700">Filter:</span>
                             </div>
 
-                            <Select value={venueFilter} onValueChange={setVenueFilter}>
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger className="w-[150px]">
-                                    <SelectValue placeholder="Venue" />
+                                    <SelectValue placeholder="Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Semua Venue</SelectItem>
-                                    <SelectItem value="Lapangan 1">Lapangan 1</SelectItem>
-                                    <SelectItem value="Lapangan 2">Lapangan 2</SelectItem>
+                                    <SelectItem value="all">Semua Status</SelectItem>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                    <SelectItem value="cancelled">Cancelled</SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -259,9 +172,10 @@ const DashboardOrder = () => {
                                     <tr>
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900">Order ID</th>
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900">Customer</th>
-                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Venue</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Lapangan</th>
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900">Date</th>
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900">Session</th>
+                                        <th className="px-6 py-4 text-sm font-semibold text-gray-900">Status</th>
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900">Total</th>
                                         <th className="px-6 py-4 text-sm font-semibold text-gray-900">Transaction <br /> Detail</th>
                                     </tr>
@@ -273,12 +187,11 @@ const DashboardOrder = () => {
                                             <td className="px-6 py-4">
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-900">{order.customer}</div>
-                                                    <div className="text-sm text-gray-500">{order.phone}</div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center text-sm text-gray-900">
-                                                    {order.venueId}
+                                                    {order.fieldName}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-900">{order.date}</td>
@@ -286,6 +199,11 @@ const DashboardOrder = () => {
                                                 <div className="flex items-center text-sm text-gray-900">
                                                     {order.session}
                                                 </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                    {order.status}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm font-semibold text-gray-900">{order.totalPrice}</td>
                                             <td className="px-6 py-4"><button 
@@ -336,28 +254,14 @@ const DashboardOrder = () => {
                         {/* Lokasi */}
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="venueId" className="text-right font-medium">
-                                Lokasi
+                                Lapangan
                             </label>
                             <Input
                                 id="venueId"
                                 name="venueId"
-                                value={orderDetail?.venueId || ''}
+                                value={orderDetail?.fieldName || ''}
                                 readOnly
                                 className="col-span-3 bg-gray-100 cursor-not-allowed"
-                            />
-                        </div>
-
-                        {/* Status */}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="status" className="text-right font-medium">
-                                Metode <br /> Pembayaran
-                            </label>
-                            <Input
-                                id="method"
-                                name="method"
-                                value={orderDetail?.method || ''}
-                                readOnly
-                                className="col-span-3 py-2 px-3 bg-gray-100 rounded text-sm font-medium text-left cursor-not-allowed"
                             />
                         </div>
 
