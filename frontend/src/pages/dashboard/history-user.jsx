@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -200,99 +200,93 @@ const RatingDialog = ({ isRatingDialogOpen, setIsRatingDialogOpen, selectedTrans
 
 // Enhanced Transaction History List
 const HistoryUserList = () => {
+  const [transactions, setTransactions] = useState([])
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [dateFilter, setDateFilter] = useState("all")
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false)
   const [selectedOrderDetail, setSelectedOrderDetail] = useState(null)
   const [selectedTransaction, setSelectedTransaction] = useState(null)
-  const [cartItemCount] = useState(0)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [dateFilter, setDateFilter] = useState("all")
-  const [transactions, setTransactions] = useState([
-    {
-      id: "TRX-001",
-      customer: "Budi Santoso",
-      method: "OVO",
-      date: "Selasa, 30 Juni 2025",
-      session: "11.00 - 12.00",
-      totalPrice: "Rp 70.000",
-      venueName: "Johar Arena",
-      venueLocation: "Johar Baru, Jakarta",
-      field: "Lapangan Futsal A",
-      fieldId: "6862b1b7ebf2440851f37c46",
-      bookingDate: "2025-06-30",
-      hasRated: false,
-      userRating: 0,
-      userComment: ""
-    },
-    {
-      id: "TRX-002",
-      customer: "Siti Aminah",
-      method: "Bank Transfer",
-      date: "Rabu, 1 Juli 2025",
-      session: "14.00 - 16.00",
-      totalPrice: "Rp 150.000",
-      venueName: "Gelora Sports Center",
-      venueLocation: "Jakarta Pusat",
-      field: "Lapangan Badminton B",
-      fieldId: "6862b1b7ebf2440851f37c47",
-      bookingDate: "2025-07-01",
-      hasRated: true,
-      userRating: 4,
-      userComment: "Lapangan bagus dan bersih, pelayanan ramah"
-    },
-    {
-      id: "TRX-003",
-      customer: "Andi Wijaya",
-      method: "Gopay",
-      date: "Kamis, 2 Juli 2025",
-      session: "09.00 - 10.00",
-      totalPrice: "Rp 50.000",
-      venueName: "Sport Hall Utama",
-      venueLocation: "Jakarta Barat",
-      field: "Lapangan 1",
-      fieldId: "686687e90219f47bfc4c88ad",
-      bookingDate: "2025-07-02",
-      hasRated: false,
-      userRating: 0,
-      userComment: ""
-    },
-    {
-      id: "TRX-004",
-      customer: "Maya Sari",
-      method: "Dana",
-      date: "Jumat, 3 Juli 2025",
-      session: "16.00 - 18.00",
-      totalPrice: "Rp 120.000",
-      venueName: "Arena Sport Complex",
-      venueLocation: "Jakarta Selatan",
-      field: "Lapangan Futsal A",
-      fieldId: "6862b1b7ebf2440851f37c46",
-      bookingDate: "2025-07-03",
-      hasRated: true,
-      userRating: 5,
-      userComment: "Sangat puas dengan fasilitas dan kebersihan lapangan!"
-    },
-  ])
+  const [cartItemCount, setCartItemCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:3000/api/v1/bookings/history', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        console.log('Raw booking data:', response.data); // Log raw data
+        const formattedTransactions = response.data.map(booking => ({
+          id: booking.order_id,
+          venueName: booking.venue_id?.partner_req_id?.namaVenue || 'Venue tidak tersedia',
+          field: booking.field_id?.map(f => f.name).join(', ') || 'Lapangan tidak tersedia',
+          fieldId: booking.field_id && booking.field_id.length > 0 ? booking.field_id[0]._id : null, // Pass first field's ID for rating
+          venueLocation: booking.venue_id?.partner_req_id?.lokasiVenue || 'Lokasi tidak tersedia',
+          date: new Date(booking.booking_date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+          booking_date: booking.booking_date,
+          session: booking.booking_time,
+          totalPrice: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(booking.total_price || 0),
+          status: booking.status,
+          hasRated: false, // This should be determined by checking if a review exists for this booking/user/field
+          method: booking.payment_id?.method?.replace(/_/g, ' ').replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase()))) || 'N/A',
+        }));
+        console.log('Formatted transactions:', formattedTransactions); // Log formatted data
+        setTransactions(formattedTransactions);
+        setLoading(false);
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [])
+
   const handleCartClick = () => {
     console.log("Cart clicked")
   }
 
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
+      const lowerSearchTerm = searchTerm.toLowerCase();
       const matchesSearch =
-        transaction.venueName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.field.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.customer.toLowerCase().includes(searchTerm.toLowerCase())
+        transaction.venueName.toLowerCase().includes(lowerSearchTerm) ||
+        transaction.field.toLowerCase().includes(lowerSearchTerm);
 
-      const matchesDate =
-        dateFilter === "all" ||
-        (dateFilter === "today" && transaction.bookingDate === "2025-07-01") ||
-        (dateFilter === "week" && new Date(transaction.bookingDate) >= new Date("2025-06-25")) ||
-        (dateFilter === "month" && new Date(transaction.bookingDate) >= new Date("2025-06-01"))
+      if (dateFilter === "all") {
+        return matchesSearch;
+      }
 
-      return matchesSearch && matchesDate
-    })
-  }, [searchTerm, dateFilter])
+      const now = new Date();
+      const transactionDate = new Date(transaction.booking_date);
+      
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      if (dateFilter === "today") {
+        return matchesSearch && transactionDate.toDateString() === today.toDateString();
+      }
+      
+      if (dateFilter === "week") {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(now.getDate() - 7);
+        return matchesSearch && transactionDate >= oneWeekAgo;
+      }
+      
+      if (dateFilter === "month") {
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(now.getMonth() - 1);
+        return matchesSearch && transactionDate >= oneMonthAgo;
+      }
+
+      return matchesSearch;
+    });
+  }, [transactions, searchTerm, dateFilter])
 
   const handleDetailClick = (order) => {
     setSelectedOrderDetail(order)
@@ -400,7 +394,15 @@ const HistoryUserList = () => {
 
         {/* Transaction Cards */}
         <div className="space-y-4">
-          {filteredTransactions.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12 bg-white rounded-lg border">
+              <p>Loading...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12 bg-white rounded-lg border">
+              <p>Error: {error}</p>
+            </div>
+          ) : filteredTransactions.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg border">
               <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">Tidak ada transaksi</h3>
