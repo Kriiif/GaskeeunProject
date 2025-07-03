@@ -21,6 +21,11 @@ const fieldSchema = new mongoose.Schema({
     required: true
   },
 
+  desc: {
+    type: String,
+    required: true
+  },
+
   is_active: {
     type: Boolean,
     default: true
