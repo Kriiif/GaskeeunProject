@@ -163,7 +163,7 @@ const DashboardOrder = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100 font-sans relative">
+        <div className="flex min-h-screen font-sans relative">
             {/* Overlay untuk mobile ketika sidebar terbuka */}
             {isSidebarOpen && (
                 <div

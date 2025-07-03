@@ -273,7 +273,7 @@ const KelolaLapanganDashboard = () => {
     );
 
     return (
-        <div className="flex min-h-screen bg-gray-100 font-sans relative">
+        <div className="flex min-h-screen font-sans relative">
             {isSidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
