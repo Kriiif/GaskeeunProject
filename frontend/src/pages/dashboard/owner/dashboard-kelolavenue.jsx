@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import axios from 'axios';
 
 const KelolaLapanganDashboard = () => {
     const [activeMenuItem, setActiveMenuItem] = useState('Kelola Lapangan');
@@ -51,8 +52,8 @@ const KelolaLapanganDashboard = () => {
         desc: '',
         status: '',
         image: '',
-        openHour: '',
-        closeHour: '',
+        open_hour: '',
+        close_hour: '',
     });
 
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -72,7 +73,7 @@ const KelolaLapanganDashboard = () => {
         if (!myVenue || !myVenue._id) return;
         const fetchLapangans = async () => {
             try {
-                const res = await fetch(`http://localhost:3000/api/v1/fields/venue/${myVenue._id}`);
+                const res = await fetch(`http://localhost:3000/api/v1/fields/venue/${myVenue._id}?source=owner_dashboard`);
                 const data = await res.json();
                 if (res.ok && Array.isArray(data.data)) {
                     setLapangans(data.data);
@@ -226,7 +227,7 @@ const KelolaLapanganDashboard = () => {
                 setIsAddDialogOpen(false);
                 // Fetch lapangan terbaru
                 if (myVenue && myVenue._id) {
-                    const res = await fetch(`http://localhost:3000/api/v1/fields/venue/${myVenue._id}`);
+                    const res = await fetch(`http://localhost:3000/api/v1/fields/venue/${myVenue._id}?source=owner_dashboard`);
                     const data = await res.json();
                     if (res.ok && data.data) setLapangans(data.data);
                 }
@@ -250,22 +251,28 @@ const KelolaLapanganDashboard = () => {
             desc: lapangan.desc,
             status: lapangan.status,
             image: lapangan.image,
-            openHour: lapangan.openHour,
-            closeHour: lapangan.closeHour,
+            open_hour: lapangan.open_hour,
+            close_hour: lapangan.close_hour,
         });
         setIsEditDialogOpen(true);
     };
 
     const handleEditFormChange = (e) => {
-        const { name, value } = e.target;
-        setEditFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, files } = e.target;
+        if (name === "imageUpload") {
+            if (files && files[0]) {
+                const file = files[0];
+                setEditFormData(prev => ({ ...prev, image: file }));
+            }
+        } else {
+            setEditFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleEditImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            const imageUrl = URL.createObjectURL(file);
-            setEditFormData(prev => ({ ...prev, image: imageUrl }));
+            setEditFormData(prev => ({ ...prev, image: file }));
         }
     };
 
@@ -273,16 +280,64 @@ const KelolaLapanganDashboard = () => {
         setEditFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSaveEdit = () => {
-        setLapangans(prevLapangans =>
-            prevLapangans.map(lap =>
-                lap.id === editingLapangan.id ? { ...lap, ...editFormData } : lap
-            )
-        );
-        setIsEditDialogOpen(false);
-        setEditingLapangan(null);
-        if (editFormData.image.startsWith('blob:')) {
-            URL.revokeObjectURL(editFormData.image);
+    const handleSaveEdit = async () => {
+        if (!editingLapangan || !editingLapangan._id) {
+            alert('Lapangan yang akan diedit tidak valid.');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Sesi anda telah berakhir, silakan login kembali.');
+            return;
+        }
+
+        const formData = new FormData();
+
+        // Loop through editFormData to find changed fields
+        Object.keys(editFormData).forEach(key => {
+            // Check if the field is the image file input
+            if (key === 'image' && editFormData.image instanceof File) {
+                formData.append('image', editFormData.image);
+            } else if (editFormData[key] !== editingLapangan[key]) {
+                // For other fields, append if the value has changed
+                formData.append(key, editFormData[key]);
+            }
+        });
+
+        // If no data is changed, just close the dialog
+        if (Array.from(formData.keys()).length === 0) {
+            setIsEditDialogOpen(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:3000/api/v1/fields/${editingLapangan._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Update local state with the returned updated data
+                setLapangans(prevLapangans =>
+                    prevLapangans.map(lap =>
+                        lap._id === editingLapangan._id ? result.data : lap
+                    )
+                );
+                setIsEditDialogOpen(false);
+                setEditingLapangan(null);
+                alert('Lapangan berhasil diperbarui!');
+            } else {
+                alert(result.message || 'Gagal memperbarui lapangan');
+            }
+        } catch (error) {
+            console.error('Error updating field:', error);
+            alert('Terjadi kesalahan saat memperbarui lapangan.');
         }
     };
 
@@ -292,14 +347,32 @@ const KelolaLapanganDashboard = () => {
         setIsDeleteDialogOpen(true);
     };
 
-    const confirmDelete = () => {
-        setLapangans(prev => prev.filter(lap => lap.id !== lapanganToDelete.id));
-        const newActiveSchedules = { ...activeSchedules };
-        delete newActiveSchedules[lapanganToDelete.id];
-        setActiveSchedules(newActiveSchedules);
+    const confirmDelete = async () => {
+        if (!lapanganToDelete || !lapanganToDelete._id) return;
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Sesi anda telah berakhir, silakan login kembali.');
+            return;
+        }
+        try {
+            const response = await fetch(`http://localhost:3000/api/v1/fields/${lapanganToDelete._id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
 
-        setIsDeleteDialogOpen(false);
-        setLapanganToDelete(null);
+            if (response.ok) {
+                setLapangans(prev => prev.filter(lap => lap._id !== lapanganToDelete._id));
+                setIsDeleteDialogOpen(false);
+                setLapanganToDelete(null);
+                alert('Lapangan berhasil dihapus.');
+            } else {
+                const result = await response.json();
+                alert(result.message || 'Gagal menghapus lapangan.');
+            }
+        } catch (error) {
+            console.error('Error deleting field:', error);
+            alert('Terjadi kesalahan saat menghapus lapangan.');
+        }
     };
 
     const handleCheckboxChange = (lapanganId, slotTime, checked) => {
@@ -523,7 +596,7 @@ const KelolaLapanganDashboard = () => {
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="imageUpload" className="text-right font-medium">Gambar</label>
                             <div className="col-span-3">
-                                <Button type="button" variant="outline" onClick={handleButtonClick}>Pilih Foto</Button>
+                                <Button type="button" variant="outline" onClick={() => fileInputRef.current.click()}>Pilih Foto</Button>
                                 <input id="imageUpload" name="imageUpload" type="file" accept="image/*" onChange={handleEditImageChange} ref={fileInputRef} style={{ display: 'none' }} />
                             </div>
                         </div>
@@ -531,29 +604,33 @@ const KelolaLapanganDashboard = () => {
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <span className="col-span-1"></span>
                                 <div className="col-span-3">
-                                    <img src={editFormData.image} alt="Preview" className="w-24 h-24 object-cover rounded-md" />
+                                    <img 
+                                        src={editFormData.image instanceof File ? URL.createObjectURL(editFormData.image) : (editFormData.image ? `http://localhost:3000/${editFormData.image}` : '')}
+                                        alt="Preview" 
+                                        className="w-24 h-24 object-cover rounded-md" 
+                                    />
                                 </div>
                             </div>
                         )}
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="openHourEdit" className="text-right font-medium">Jam Buka</label>
+                            <label htmlFor="open_hour" className="text-right font-medium">Jam Buka</label>
                             <Input
-                                id="openHourEdit"
-                                name="openHour"
+                                id="open_hour"
+                                name="open_hour"
                                 type="time"
                                 className="col-span-3"
-                                value={editFormData.openHour}
+                                value={editFormData.open_hour}
                                 onChange={handleEditFormChange}
                             />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="closeHourEdit" className="text-right font-medium">Jam Tutup</label>
+                            <label htmlFor="close_hour" className="text-right font-medium">Jam Tutup</label>
                             <Input
-                                id="closeHourEdit"
-                                name="closeHour"
+                                id="close_hour"
+                                name="close_hour"
                                 type="time"
                                 className="col-span-3"
-                                value={editFormData.closeHour}
+                                value={editFormData.close_hour}
                                 onChange={handleEditFormChange}
                             />
                         </div>

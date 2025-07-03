@@ -20,7 +20,15 @@ router.get('/', async (req, res) => {
 router.get('/venue/:venue_id', async (req, res) => {
   try {
     const { venue_id } = req.params;
-    const fields = await Field.find({ venue_id, is_active: true })
+    const { source } = req.query; // Tambahkan untuk memeriksa sumber permintaan
+
+    const filter = { venue_id };
+    // Jika permintaan bukan dari dasbor pemilik, hanya tampilkan lapangan yang aktif
+    if (source !== 'owner_dashboard') {
+      filter.is_active = true;
+    }
+
+    const fields = await Field.find(filter)
       .populate('owner_id', 'name')
       .sort({ createdAt: -1 });
     
@@ -79,6 +87,54 @@ router.post('/', upload.single('image'), authorize, async (req, res) => {
   } catch (err) {
     console.error('Error saat tambah field:', err);
     res.status(500).json({ message: 'Terjadi kesalahan di server' });
+  }
+});
+
+// Update field by ID
+router.put('/:id', upload.single('image'), authorize, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const field = await Field.findById(id);
+
+    if (!field) {
+      return res.status(404).json({ message: 'Lapangan tidak ditemukan' });
+    }
+
+    // Pastikan user yang mengedit adalah pemilik lapangan
+    if (field.owner_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Anda tidak memiliki izin untuk mengedit lapangan ini' });
+    }
+
+    // Handle status update from frontend
+    if (updateData.status) {
+      field.is_active = updateData.status === 'Online';
+      delete updateData.status; // Prevent status from being directly assigned
+    }
+
+    // Update other field properties
+    Object.assign(field, updateData);
+
+    // Handle image update
+    if (req.file) {
+      field.image_url = `/uploads/${req.file.filename}`;
+    }
+
+    const updatedField = await field.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Lapangan berhasil diperbarui',
+      data: updatedField
+    });
+
+  } catch (err) {
+    console.error('Error updating field:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Terjadi kesalahan di server saat memperbarui data lapangan' 
+    });
   }
 });
 
