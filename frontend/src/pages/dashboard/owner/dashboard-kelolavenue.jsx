@@ -156,7 +156,6 @@ const KelolaLapanganDashboard = () => {
             category: '',
             price: '',
             desc: '',
-            location: '',
             open_hour: '',
             close_hour: '',
             image: null,
@@ -180,7 +179,6 @@ const KelolaLapanganDashboard = () => {
         // Validasi sederhana
         if (
             !addFormData.name ||
-            !addFormData.location ||
             !addFormData.category ||
             !addFormData.price ||
             !addFormData.desc ||
@@ -208,7 +206,7 @@ const KelolaLapanganDashboard = () => {
         formData.append('category', addFormData.category);
         formData.append('price', addFormData.price);
         formData.append('desc', addFormData.desc);
-        formData.append('location', addFormData.location);
+        // formData.append('location', addFormData.location);
         formData.append('open_hour', addFormData.open_hour);
         formData.append('close_hour', addFormData.close_hour);
         formData.append('image', addFormData.image); // field name HARUS 'image'
@@ -255,7 +253,7 @@ const KelolaLapanganDashboard = () => {
         setEditingLapangan(lapangan);
         setEditFormData({
             name: lapangan.name,
-            location: lapangan.location,
+            // location: lapangan.location,
             category: lapangan.category,
             desc: lapangan.desc,
             status: lapangan.status,
@@ -492,10 +490,10 @@ const KelolaLapanganDashboard = () => {
                             <label htmlFor="name" className="text-right font-medium">Nama</label>
                             <Input id="name" name="name" value={addFormData.name} onChange={handleAddFormChange} className="col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
+                        {/* <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="location" className="text-right font-medium">Lokasi</label>
                             <Input id="location" name="location" value={addFormData.location} onChange={handleAddFormChange} className="col-span-3" />
-                        </div>
+                        </div> */}
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="category" className="text-right font-medium">Kategori</label>
                             <Input id="category" name="category" value={addFormData.category} onChange={handleAddFormChange} className="col-span-3" />
