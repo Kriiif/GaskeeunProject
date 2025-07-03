@@ -14,8 +14,6 @@ const authorize = async (req, res, next) => {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        console.log('Token:', token); // Debugging line to check the token
-        console.log('JWT_SECRET:', JWT_SECRET); // Debugging line to check the secret
         // Verify token
         const decoded = jwt.verify(token, JWT_SECRET);
         // console.log('Decoded JWT:', decoded);

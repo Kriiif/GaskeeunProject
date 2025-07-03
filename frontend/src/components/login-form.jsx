@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '@/hooks/useAuth'; // ⬅️ Pastikan path-nya sesuai
+import useAuth from '@/hooks/useAuth';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm({ className, ...props }) {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, user } = useAuth(); // ✅ pakai context
+  const { login, loginWithGoogle, user } = useAuth();
   useEffect(() => {
     if (!user) return;
 

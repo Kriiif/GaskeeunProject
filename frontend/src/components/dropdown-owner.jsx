@@ -2,13 +2,13 @@ import React, { useState } from 'react'; // Import React and useState
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'; // Import dropdown components
 import { Navigate, useNavigate } from 'react-router-dom'; // If you want to navigate after password change
 import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, TrendingUp } from 'lucide-react'; // Import TrendingUp
+import useAuth from '@/hooks/useAuth'; 
 
 const CustomDropdownOwner = () => {   
     const navigate = useNavigate(); // Initialize useNavigate hook
+    const { logout } = useAuth(); // Import logout function from your auth context or hook
     const handleLogout = () => {
-        // Implement your logout logic here
-        console.log("Logging out...");
-        // Example: navigate to login page
+        logout();
         navigate('/login');
     };
 

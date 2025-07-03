@@ -116,17 +116,13 @@ export default function Dashboard() {
     setFilteredVenues(tempVenues);
   };
 
-  // useEffect untuk memicu applyFilters saat komponen pertama kali dimuat
-  // dan setiap kali venueName, city, atau sportType berubah.
-  // Ini adalah filter utama yang dipicu oleh input dan tombol "Cari Venue".
+  // Menerapkan filter setiap kali venueName, city, atau sportType berubah
   useEffect(() => {
     applyFilters();
   }, [venueName, city, sportType]);
 
-  // useEffect terpisah untuk memicu pengurutan setiap kali sortBy berubah.
-  // Ini akan mengurutkan ulang 'filteredVenues' yang sudah ada.
+  // Mengurutkan venue berdasarkan pilihan sortBy setiap kali sortBy berubah
   useEffect(() => {
-    // Pastikan kita bekerja dengan salinan current filteredVenues
     const sortedCurrentVenues = [...filteredVenues];
 
     sortedCurrentVenues.sort((a, b) => {
