@@ -88,9 +88,7 @@ router.put('/:id/status', authorize, async (req, res) => {
 
         if (!partnerRequest) {
             return res.status(404).json({ message: 'Partnership request tidak ditemukan' });
-        }
-
-        // If status is approved, create a new venue
+        }        // If status is approved, create a new venue
         if (status === 'approved') {
             // Check if venue already exists for this partnership request
             const existingVenue = await Venue.findOne({ partner_req_id: id });
@@ -99,7 +97,9 @@ router.put('/:id/status', authorize, async (req, res) => {
                 const newVenue = new Venue({
                     description: `${partnerRequest.namaVenue} - ${partnerRequest.lokasiVenue}`,
                     partner_req_id: id,
-                    status: 'active'
+                    status: 'active',
+                    price: 75000, // Default price, can be customized later
+                    sports: ['Futsal', 'Badminton'] // Default sports, can be customized later
                 });
 
                 await newVenue.save();

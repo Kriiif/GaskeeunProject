@@ -16,6 +16,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get fields by venue_id
+router.get('/venue/:venue_id', async (req, res) => {
+  try {
+    const { venue_id } = req.params;
+    const fields = await Field.find({ venue_id, is_active: true })
+      .populate('owner_id', 'name')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json({
+      success: true,
+      data: fields
+    });
+  } catch (err) {
+    console.error('Error fetching fields by venue:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Terjadi kesalahan di server saat mengambil data lapangan' 
+    });
+  }
+});
+
 // Tambah field baru
 router.post('/', upload.single('image'), authorize, async (req, res) => {
   try {

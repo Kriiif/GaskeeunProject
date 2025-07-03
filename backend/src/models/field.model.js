@@ -46,13 +46,13 @@ const fieldSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-
   owner_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   }
 }, {
+  timestamps: true,
   versionKey: false
 });
 

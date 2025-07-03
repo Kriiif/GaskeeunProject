@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import { Header } from '@/components/header';
 import { HeaderUser } from '@/components/header-user';
@@ -27,34 +28,59 @@ const carouselImages = [
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [allVenues, setAllVenues] = useState([]);
   const [filteredVenues, setFilteredVenues] = useState([]);
   const [venueName, setVenueName] = useState('');
   const [city, setCity] = useState('');
   const [sportType, setSportType] = useState('');
-  const [sortBy, setSortBy] = useState('Harga Tertinggi');
+  const [sortBy, setSortBy] = useState('Terbaru');
   const [cartItems, setCartItems] = useState([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
     const fetchVenues = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/v1/fields');
+        const response = await fetch('http://localhost:3000/api/v1/venues');
         if (!response.ok) {
-          throw new Error('Gagal mengambil data');
+          throw new Error('Gagal mengambil data venue');
         }
-        const data = await response.json();
-        setAllVenues(data);
-        setFilteredVenues(data);
+        const result = await response.json();
+          if (result.success) {
+          // Filter only active venues and format the data
+          const activeVenues = result.data
+            .filter(venue => venue.status === 'active' && venue.partner_req_id)
+            .map(venue => ({
+              id: venue._id,
+              name: venue.partner_req_id.namaVenue,
+              location: venue.partner_req_id.lokasiVenue,
+              description: venue.description,
+              owner: venue.partner_req_id.namaPemilik,
+              email: venue.partner_req_id.email,
+              phone: venue.partner_req_id.nomorTelepon,
+              image_url: venue.partner_req_id.fotoVenue ? `/uploads/${venue.partner_req_id.fotoVenue}` : '/venue/default.jpg',
+              category: venue.sports && venue.sports.length > 0 ? venue.sports.join(', ') : 'Multi-Sport',
+              sports: venue.sports || ['Multi-Sport'],
+              price: venue.price || 50000,
+              createdAt: venue.createdAt
+            }));
+          
+          setAllVenues(activeVenues);
+          setFilteredVenues(activeVenues);
+        }
       } catch (error) {
         console.error('Error fetching venues:', error);
       }
     };
     fetchVenues();
   }, []);
-
   const removeFromCart = (slotId, fieldId, date) => {
     setCartItems(cartItems.filter(item => !(item.slotId === slotId && item.fieldId === fieldId && item.date === date)));
+  };
+
+  // Function to navigate to venue detail page
+  const handleVenueClick = (venueId) => {
+    navigate(`/venue/${venueId}`);
   };
 
   // Fungsi untuk menerapkan filter berdasarkan nama, kota, dan jenis olahraga
@@ -73,31 +99,27 @@ export default function Dashboard() {
       );
     }
 
-    // Perubahan di sini: Jika sportType adalah "All", jangan filter berdasarkan olahraga
-    if (sportType && sportType !== 'All') {
-      tempVenues = tempVenues.filter(venue =>
-        venue.category.includes(sportType)
-      );
-    }
+    // For venues, we'll show all since they are multi-sport
+    // sportType filter can be removed or kept for future enhancement
 
-    // Terapkan pengurutan ke hasil filter
+    // Apply sorting to filtered results
     tempVenues.sort((a, b) => {
       if (sortBy === 'Harga Tertinggi') {
         return b.price - a.price;
       } else if (sortBy === 'Harga Terendah') {
         return a.price - b.price;
+      } else if (sortBy === 'Terbaru') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
       }
-      // Rating sort removed
       return 0;
     });
 
     setFilteredVenues(tempVenues);
   };
-
-  // Menerapkan filter setiap kali venueName, city, atau sportType berubah
+  // Menerapkan filter setiap kali venueName, city, atau sortBy berubah
   useEffect(() => {
     applyFilters();
-  }, [venueName, city, sportType, sortBy, allVenues]);
+  }, [venueName, city, sortBy, allVenues]);
 
 
   return (
@@ -128,9 +150,7 @@ export default function Dashboard() {
               ))}
             </CarouselContent>
           </Carousel>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-wrap gap-4 items-center justify-between">
+        </div>        <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-wrap gap-4 items-center justify-between">
           <Input
             placeholder="Cari Nama Venue"
             className="flex-1 min-w-[200px]"
@@ -143,20 +163,7 @@ export default function Dashboard() {
             value={city}
             onChange={(e) => setCity(e.target.value)}
           />
-          <Select onValueChange={setSportType} value={sportType}>
-            <SelectTrigger className="flex-1 min-w-[200px]">
-              <SelectValue placeholder="Pilih Cabang Olahraga" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All</SelectItem> {/* Opsi "All" ditambahkan di sini */}
-              <SelectItem value="Badminton">Badminton</SelectItem>
-              <SelectItem value="Futsal">Futsal</SelectItem>
-              <SelectItem value="Basket">Basket</SelectItem>
-              <SelectItem value="Tenis">Tenis</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {/* Venue List Header */}
+        </div>        {/* Venue List Header */}
         <div className="flex justify-between items-center mb-6">
             <p className="text-gray-700 text-lg">Menemukan <span className="font-bold">{filteredVenues.length}</span> Venue Tersedia</p>
             <div className="flex items-center space-x-2">
@@ -166,43 +173,78 @@ export default function Dashboard() {
                     <SelectValue placeholder="Urutkan" />
                 </SelectTrigger>
                 <SelectContent>
+                    <SelectItem value="Terbaru">Terbaru</SelectItem>
                     <SelectItem value="Harga Tertinggi">Harga Tertinggi</SelectItem>
                     <SelectItem value="Harga Terendah">Harga Terendah</SelectItem>
                 </SelectContent>
                 </Select>
             </div>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredVenues.map((venue, index) => (
-            <Card key={index} className="overflow-hidden pt-0 mb-0">
-              <img src={`http://localhost:3000${venue.image_url}`} alt={venue.name} className="w-full h-48 object-cover" />
-              <CardHeader className="px-4 pb-0">
-                <CardDescription className="text-sm text-gray-500 mb-1">{venue.category}</CardDescription>
-                <CardTitle className="text-xl font-semibold text-gray-800 leading-tight">{venue.name}</CardTitle>
-                <CardDescription className="flex items-center text-gray-600 text-sm mt-1">
-                  <span className="font-medium text-gray-700">{venue.location}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="px-4">
-                <div className="flex items-center text-gray-700 text-sm space-x-3">
-                    <span className="flex">
-                      {venue.category === 'Futsal' && <span>⚽</span>}
-                      {venue.category === 'Badminton' && <span>🏸</span>}
-                      {venue.category === 'Basket' && <span>🏀</span>}
-                      {venue.category === 'Tenis' && <span>🎾</span>}
-                      {venue.category}
+        </div>        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {filteredVenues.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-500 text-lg">Tidak ada venue yang ditemukan</p>
+              <p className="text-gray-400 text-sm">Coba ubah filter pencarian Anda</p>
+            </div>
+          ) : (            filteredVenues.map((venue, index) => (
+              <Card 
+                key={venue.id || index} 
+                className="overflow-hidden pt-0 mb-0 hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => handleVenueClick(venue.id)}
+              >
+                <img 
+                  src={`http://localhost:3000${venue.image_url}`} 
+                  alt={venue.name} 
+                  className="w-full h-48 object-cover"
+                  onError={(e) => {
+                    e.target.src = '/venue/default.jpg';
+                  }}
+                />
+                <CardHeader className="px-4 pb-0">
+                  <CardDescription className="text-sm text-gray-500 mb-1">
+                    {venue.category} • Owner: {venue.owner}
+                  </CardDescription>
+                  <CardTitle className="text-xl font-semibold text-gray-800 leading-tight">
+                    {venue.name}
+                  </CardTitle>
+                  <CardDescription className="flex items-center text-gray-600 text-sm mt-1">
+                    <span className="font-medium text-gray-700">{venue.location}</span>
+                  </CardDescription>
+                </CardHeader>                <CardContent className="px-4">
+                  <div className="flex items-center text-gray-700 text-sm space-x-3">
+                    <span className="flex items-center">
+                      <span className="mr-1">🏟️</span>
+                      {venue.sports && venue.sports.length > 0 
+                        ? venue.sports.slice(0, 2).join(', ') + (venue.sports.length > 2 ? '...' : '')
+                        : 'Multi-Sport'
+                      }
                     </span>
-                </div>
-              </CardContent>
-              <CardFooter className="p-4 pt-0">
-                <div className="flex items-baseline text-gray-800">
-                  <span className="text-sm mr-1">Mulai</span>
-                  <span className="font-bold text-xl">Rp {venue.price.toLocaleString('id-ID')}</span>
-                  <span className="text-sm ml-1">/ Sesi</span>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
+                  </div>
+                  {venue.description && (
+                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                      {venue.description}
+                    </p>
+                  )}
+                </CardContent>
+                <CardFooter className="p-4 pt-0">
+                  <div className="flex items-baseline justify-between w-full">
+                    <div className="flex items-baseline text-gray-800">
+                      <span className="text-sm mr-1">Mulai</span>
+                      <span className="font-bold text-xl">Rp {venue.price.toLocaleString('id-ID')}</span>
+                      <span className="text-sm ml-1">/ Sesi</span>
+                    </div>                    <Button 
+                      className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVenueClick(venue.id);
+                      }}
+                    >
+                      Lihat Detail
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))
+          )}
         </div>
       </div>
 

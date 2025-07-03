@@ -40,7 +40,7 @@ const DashboardKelolaVenue = () => {
         return;
       }
 
-      const response = await axios.get('http://localhost:3000/api/v1/venues', {
+      const response = await axios.get('http://localhost:3000/api/v1/venues/admin', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

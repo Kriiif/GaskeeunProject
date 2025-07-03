@@ -17,14 +17,15 @@ import ProfileUser from '../pages/dashboard/profile-pages'
 import DashboardListOwnerVenue from '../pages/dashboard/superAdmin/dashboard-listVenueOwner'
 import Dashboard from '../pages/dashboard/dashboard'
 import FormPartner from '../pages/dashboard/form-partner'
+import VenueDetailPage from '../pages/product/venue-detail'
 
 export default function AppRouter() {
     return (
         <Router>
             <Routes>
                 {/* dashboard-guest di set sebagai root */}
-                {/* <Route path="/" element={<SewaLapanganDashboard />} /> */}
-                <Route path="/" element={<Dashboard />} />
+                {/* <Route path="/" element={<SewaLapanganDashboard />} /> */}                <Route path="/" element={<Dashboard />} />
+                <Route path="/venue/:venueId" element={<VenueDetailPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path='/signup' element={<SignupPage />} />
                 <Route path="/verification" element={<Verification />} />

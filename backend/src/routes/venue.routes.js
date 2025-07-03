@@ -4,8 +4,31 @@ import authorize from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-// Get all venues
+// Get all venues (public - no auth required)
 router.get('/', async (req, res) => {
+    try {
+        const venues = await Venue.find({ status: 'active' }) // Only return active venues for public
+            .populate({
+                path: 'partner_req_id',
+                populate: {
+                    path: 'user_id',
+                    select: 'name email'
+                }
+            })
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: venues
+        });
+    } catch (err) {
+        console.error('Error fetching venues:', err);
+        res.status(500).json({ success: false, message: 'Terjadi kesalahan di server' });
+    }
+});
+
+// Get all venues for admin (with auth)
+router.get('/admin', authorize, async (req, res) => {
     try {
         const venues = await Venue.find({})
             .populate({

@@ -11,6 +11,16 @@ const venueSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    price: {
+        type: Number,
+        default: 50000,
+        min: 0
+    },
+    sports: [{
+        type: String,
+        enum: ['Futsal', 'Badminton', 'Basket', 'Tenis', 'Voli', 'Tennis Meja'],
+        default: ['Futsal', 'Badminton']
+    }],
     partner_req_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'PartnerRequest',
