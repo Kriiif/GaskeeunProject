@@ -3,15 +3,15 @@ import { HeaderUser } from '@/components/header-user'; // Pastikan path ini bena
 import axios from 'axios'; // Pastikan Anda telah menginstal axios
 import { useNavigate } from 'react-router-dom';
 
-const FormPartner = () => {
-  // State untuk semua bidang formulir (controlled components)
+const FormPartner = () => {  // State untuk semua bidang formulir (controlled components)
   const [formData, setFormData] = useState({
     namaPemilik: '',
+    namaVenue: '',
     npwp: '',
     nomorTelepon: '',
     email: '',
     lokasiVenue: '',
-    nomorIndukBerusaha: '', // tambahkan ini ke state
+    nomorIndukBerusaha: '',
   });
 
   // State untuk nama file yang dipilih
@@ -58,10 +58,9 @@ const FormPartner = () => {
   // Fungsi validasi formulir
   const validateForm = () => {
     let newErrors = {};
-    let isValid = true;
-
-    // Validasi input teks
+    let isValid = true;    // Validasi input teks
     if (!formData.namaPemilik.trim()) { newErrors.namaPemilik = 'Nama Pemilik wajib diisi.'; isValid = false; }
+    if (!formData.namaVenue.trim()) { newErrors.namaVenue = 'Nama Venue wajib diisi.'; isValid = false; }
     if (!formData.npwp.trim()) { newErrors.npwp = 'NPWP wajib diisi.'; isValid = false; }
     if (!formData.nomorTelepon.trim()) { newErrors.nomorTelepon = 'Nomor Telepon wajib diisi.'; isValid = false; }
     if (!formData.email.trim()) {
@@ -92,10 +91,10 @@ const FormPartner = () => {
 
     setIsSubmitting(true);
 
-    try {
-      // Buat FormData untuk mengirim file dan data teks
+    try {      // Buat FormData untuk mengirim file dan data teks
       const apiFormData = new FormData();
       apiFormData.append('namaPemilik', formData.namaPemilik);
+      apiFormData.append('namaVenue', formData.namaVenue);
       apiFormData.append('npwp', formData.npwp);
       apiFormData.append('nomorTelepon', formData.nomorTelepon);
       apiFormData.append('email', formData.email);
@@ -116,7 +115,7 @@ const FormPartner = () => {
 
       if (response.status === 201 && result.message) {
         setSubmissionMessage({ type: 'success', text: result.message || 'Permohonan partnership berhasil dikirim!' });
-        setFormData({ namaPemilik: '', npwp: '', nomorTelepon: '', email: '', lokasiVenue: '', nomorIndukBerusaha: '' });
+        setFormData({ namaPemilik: '', namaVenue: '', npwp: '', nomorTelepon: '', email: '', lokasiVenue: '', nomorIndukBerusaha: '' });
         setFotoSuratTanahFileName('');
         setFotoKTPFileName('');
         setFotoVenueFileName('');
@@ -215,8 +214,7 @@ const FormPartner = () => {
       <div className="bg-white shadow-md rounded-lg p-8 mt-20 w-full max-w-xl"> {/* Lebar card diubah menjadi max-w-xl */}
         <h2 className="text-xl font-bold text-gray-800 text-center mb-6">Partnership Gaskeeun</h2>
         <form onSubmit={handleSubmit}>
-          <div className="mt-6">
-            {/* Nama Pemilik */}
+          <div className="mt-6">            {/* Nama Pemilik */}
             <div className="mb-4">
               <label htmlFor="namaPemilik" className="block text-gray-700 text-sm font-bold mb-2">
                 Nama Pemilik <span className="text-red-500">*</span>
@@ -230,6 +228,22 @@ const FormPartner = () => {
                 placeholder="Masukkan nama pemilik usaha"
               />
               {errors.namaPemilik && <p className="text-red-500 text-xs italic mt-1">{errors.namaPemilik}</p>}
+            </div>
+
+            {/* Nama Venue */}
+            <div className="mb-4">
+              <label htmlFor="namaVenue" className="block text-gray-700 text-sm font-bold mb-2">
+                Nama Venue <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="namaVenue"
+                value={formData.namaVenue}
+                onChange={handleChange}
+                className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.namaVenue ? 'border-red-500' : ''}`}
+                placeholder="Masukkan nama venue"
+              />
+              {errors.namaVenue && <p className="text-red-500 text-xs italic mt-1">{errors.namaVenue}</p>}
             </div>
 
             {/* Foto Surat Tanah */}

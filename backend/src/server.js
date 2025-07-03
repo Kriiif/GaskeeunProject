@@ -12,6 +12,7 @@ import fieldRoutes from './routes/field.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import partnerReqRoutes from './routes/partner_req.routes.js';
 import reviewRoutes from './routes/review.routes.js';
+import venueRoutes from './routes/venue.routes.js';
 
 
 dotenv.config()
@@ -34,6 +35,7 @@ app.use('/api/v1/fields', fieldRoutes);
 app.use('/api/v1/payment', paymentRoutes);
 app.use('/api/v1/partnership', partnerReqRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/venues', venueRoutes);
 
 // Middleware untuk error handling
 app.use(errorMiddleware)

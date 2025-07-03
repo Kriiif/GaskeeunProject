@@ -1,26 +1,21 @@
 import mongoose from 'mongoose';
 
 const venueSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-    unique: true
-  },
-  location: { // Ini akan digunakan untuk kota
-    type: String,
-    required: true
-  },
-  address: { // Ini untuk alamat lengkap
-    type: String,
-    required: true
-  },
-  owner_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    unique: true // Setiap user hanya bisa punya 1 venue
-  }
+    status: {
+        type: String,
+        enum: ['active', 'banned'],
+        default: 'active'
+    },
+    description: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    partner_req_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PartnerRequest',
+        required: true
+    },
 }, { timestamps: true });
 
 const Venue = mongoose.model('Venue', venueSchema);

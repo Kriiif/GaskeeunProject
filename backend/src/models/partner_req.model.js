@@ -10,6 +10,10 @@ const partnerReqSchema = new mongoose.Schema({
     namaPemilik: {
         type: String, required: true, trim: true
     },
+
+    namaVenue: {
+        type: String, required: true, trim: true
+    },
     
     fotoSuratTanah: {
         type: String, required: true
@@ -41,6 +45,12 @@ const partnerReqSchema = new mongoose.Schema({
 
     lokasiVenue: {
         type: String, required: true, trim: true
+    },
+
+    status: {
+        type: String,
+        enum: ['on hold', 'approved', 'rejected'],
+        default: 'on hold'
     },
 
     created_at: {
