@@ -41,6 +41,7 @@ app.use('/api/v1/partnership', partnerReqRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/venues', venueRoutes);
 app.use('/api/v1/cart', cartRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
 
 // Middleware untuk error handling
 app.use(errorMiddleware)
