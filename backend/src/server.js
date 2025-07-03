@@ -8,6 +8,7 @@ import { PORT } from './config/env.js'
 import connectToDatabase from './database/mongodb.js'
 import errorMiddleware from './middlewares/error.middleware.js'
 import cookieParser from 'cookie-parser'
+import fieldRoutes from './routes/field.routes.js';
 
 
 dotenv.config()
@@ -19,6 +20,8 @@ const PORTS = PORT || 3000
 app.use(cors())
 app.use(express.json())
 app.use(cookieParser())
+
+app.use(express.static('public')); 
 
 // Routes
 app.use('/api/v1/auth', authRoutes)
@@ -34,6 +37,8 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   })
 })
+
+app.use('/api/v1/fields', fieldRoutes); 
 
 // Health check
 app.get('/health', (req, res) => {

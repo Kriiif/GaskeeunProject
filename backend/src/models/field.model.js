@@ -21,6 +21,16 @@ const fieldSchema = new mongoose.Schema({
     required: true
   },
 
+  open_hour: {
+    type: String,
+    required: true
+  },
+
+  close_hour: {
+    type: String,
+    required: true
+  },
+
   desc: {
     type: String,
     required: true

@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { useNavigate } from 'react-router-dom';
 import CustomSidebar from '@/components/sidebar';
+import useAuth from '@/hooks/useAuth';
 
 import {
     Dialog,
@@ -25,28 +26,20 @@ const KelolaLapanganDashboard = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
+    const { token } = useAuth();
 
     // State for Dialogs
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-    // State for Data being manipulated
-    const [editingLapangan, setEditingLapangan] = useState(null);
-    const [lapanganToDelete, setLapanganToDelete] = useState(null);
-
-    // State for Forms
     const [addFormData, setAddFormData] = useState({
         name: '',
-        image: '',
-        rating: 0.0,
-        sport: '',
-        location: '',
-        openHour: '',
-        closeHour: '',
-        status: 'Online',
-    })
-
+        category: '',
+        price: '',
+        desc: '',
+        open_hour: '',
+        close_hour: '',
+        image: null,
+    });
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [editFormData, setEditFormData] = useState({
         name: '',
         location: '',
@@ -55,6 +48,12 @@ const KelolaLapanganDashboard = () => {
         openHour: '',
         closeHour: '',
     });
+
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+    // State for Data being manipulated
+    const [editingLapangan, setEditingLapangan] = useState(null);
+    const [lapanganToDelete, setLapanganToDelete] = useState(null);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [activeSchedules, setActiveSchedules] = useState({});
@@ -127,47 +126,70 @@ const KelolaLapanganDashboard = () => {
     const handleAddClick = () => {
         setAddFormData({
             name: '',
-            image: '',
-            rating: 0.0, // Default rating
-            sport: '',
-            location: '',
-            openHour: '',
-            closeHour: '',
-            status: 'Online', // Default status
-        })
+            category: '',
+            price: '',
+            desc: '',
+            open_hour: '',
+            close_hour: '',
+            image: null,
+        });
         setIsAddDialogOpen(true);
-    }
+    };
 
     const handleAddFormChange = (e) => {
         const { name, value } = e.target;
-        setAddFormData(prev => ({ ...prev, [name]: value }));
+        setAddFormData({ ...addFormData, [name]: value });
     };
-
-    const handleAddLapanganSubmit = () => {
-        const newId = `lapangan${lapangans.length + 1}`;
-        const newLapangan = {
-            id: newId,
-            ...addFormData,
-            timeSlots: [],
-        };
-
-        setLapangans(prev => [...prev, newLapangan]);
-        setIsAddDialogOpen(false);
-        // Revoke Object URL jika gambar diunggah
-        if (addFormData.image.startsWith('blob:')) {
-            URL.revokeObjectURL(addFormData.image);
-        }
-    }
 
     const handleAddImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const imageUrl = URL.createObjectURL(file);
-            setAddFormData(prev => ({ ...prev, image: imageUrl }));
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setAddFormData({ ...addFormData, image: file });
         }
     };
 
-    // --- Edit Handlers ---
+    const handleAddLapanganSubmit = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.error("No token found");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('name', addFormData.name);
+        formData.append('category', addFormData.category);
+        formData.append('price', addFormData.price);
+        formData.append('desc', addFormData.desc);
+        formData.append('open_hour', addFormData.open_hour);
+        formData.append('close_hour', addFormData.close_hour);
+        if (addFormData.image) {
+            formData.append('image', addFormData.image);
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/api/v1/fields', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('Field added successfully:', result);
+                // TODO: Add the new field to the UI
+                setIsAddDialogOpen(false);
+            } else {
+                const errorResult = await response.json();
+                console.error('Failed to add field:', errorResult.message);
+            }
+        } catch (error) {
+            console.error('Error submitting form:', error);
+        }
+    };
+
+
     const handleEditClick = (lapangan) => {
         setEditingLapangan(lapangan);
         setEditFormData({
@@ -408,12 +430,24 @@ const KelolaLapanganDashboard = () => {
                             <Input id="name" name="name" value={addFormData.name} onChange={handleAddFormChange} className="col-span-3"/>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="location" className="text-right font-medium">Lokasi</label>
-                            <Input id="location" name="location" value={addFormData.location} onChange={handleAddFormChange} className="col-span-3" />
+                            <label htmlFor="category" className="text-right font-medium">Kategori</label>
+                            <Input id="category" name="category" value={addFormData.category} onChange={handleAddFormChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="sport" className="text-right font-medium">Kategori</label>
-                            <Input id="sport" name="sport" value={addFormData.sport} onChange={handleAddFormChange} className="col-span-3" />
+                            <label htmlFor="price" className="text-right font-medium">Harga</label>
+                            <Input id="price" name="price" type="number" value={addFormData.price} onChange={handleAddFormChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="desc" className="text-right font-medium">Deskripsi</label>
+                            <Input id="desc" name="desc" value={addFormData.desc} onChange={handleAddFormChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="open_hour" className="text-right font-medium">Jam Buka</label>
+                            <Input id="open_hour" name="open_hour" type="time" value={addFormData.open_hour} onChange={handleAddFormChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="close_hour" className="text-right font-medium">Jam Tutup</label>
+                            <Input id="close_hour" name="close_hour" type="time" value={addFormData.close_hour} onChange={handleAddFormChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="imageUpload" className="text-right font-medium">Gambar</label>
@@ -426,32 +460,10 @@ const KelolaLapanganDashboard = () => {
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <span className="col-span-1"></span>
                                 <div className="col-span-3">
-                                    <img src={addFormData.image} alt="Preview" className="w-24 h-24 object-cover rounded-md" />
+                                    <img src={URL.createObjectURL(addFormData.image)} alt="Preview" className="w-24 h-24 object-cover rounded-md" />
                                 </div>
                             </div>
                         )}
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="openHour" className="text-right font-medium">Jam Buka</label>
-                            <Input
-                                id="openHour"
-                                name="openHour"
-                                type="time"
-                                className="flex justify-center"
-                                value={addFormData.openHour}
-                                onChange={handleAddFormChange}
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="closeHour" className="text-right font-medium">Jam Tutup</label>
-                            <Input
-                                id="closeHour"
-                                name="closeHour"
-                                type="time"
-                                className="flex justify-center"
-                                value={addFormData.closeHour}
-                                onChange={handleAddFormChange}
-                            />
-                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Batal</Button>
