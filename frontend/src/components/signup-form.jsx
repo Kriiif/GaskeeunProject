@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'
+import { AuthContext } from '../contexts/AuthContext';
 
 export function SignupForm({ className, ...props }) {
     const navigate = useNavigate()
+    const { signup, loginWithGoogle } = useContext(AuthContext)
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
@@ -18,6 +19,7 @@ export function SignupForm({ className, ...props }) {
         passwordConfirmation: ""
     })
     const [errMsg, setErrMsg] = useState("")
+    const [loading, setLoading] = useState(false)
 
     const handleChange = (e) => {
         setErrMsg("")
@@ -29,29 +31,28 @@ export function SignupForm({ className, ...props }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setLoading(true)
 
         if (formData.password !== formData.passwordConfirmation) {
             setErrMsg("Passwords do not match")
+            setLoading(false)
             return
         }
 
         try {
-            const res = await axios.post("http://localhost:3000/api/v1/auth/signup", formData)
-
-            // Cek status dan tampilkan pesan dari backend kalau bukan 201
-            if (res.status !== 201) {
-            setErrMsg(res.data.message || "Signup failed")
-            return
-            }
-
-            // Jika sukses
-            console.log("Signup success:", res.data)
-            navigate("/dashboard-user")
+            // Remove passwordConfirmation before sending to API
+            const { passwordConfirmation, ...signupData } = formData
+            
+            await signup(signupData)
+            
+            // Redirect to home page after successful signup
+            navigate("/")
 
         } catch (error) {
-            const msg = error.response?.data?.message || error.message || "Signup failed"
-            setErrMsg(msg)
-            console.error("Signup failed:", msg)
+            setErrMsg(error.message || "Signup failed")
+            console.error("Signup failed:", error)
+        } finally {
+            setLoading(false)
         }
     }
     
@@ -89,8 +90,8 @@ export function SignupForm({ className, ...props }) {
                     {errMsg && (
                     <p className="text-red-500 text-sm text-center">{errMsg}</p>
                 )}
-                    <Button type="submit" onClick={handleSubmit} className="w-full">
-                    Create Account
+                    <Button type="submit" onClick={handleSubmit} disabled={loading} className="w-full">
+                        {loading ? "Creating Account..." : "Create Account"}
                     </Button>
                     <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                     <span className="relative z-10 bg-white px-2 text-muted-foreground">Or continue with</span>
@@ -98,24 +99,16 @@ export function SignupForm({ className, ...props }) {
                     <div className="grid gap-4">
                     <GoogleLogin
                         className="w-full bg-transparent"
-                        onSuccess={(credentialResponse) => {
-                            fetch('http://localhost:3000/api/v1/auth/login-google', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ token: credentialResponse.credential })
-                            })
-                            .then(res => res.json())
-                            .then(data => {
-                                if(data.message){
-                                    setErrMsg(data.message)
-                                } else {
-                                    console.log("Logged in!", data);
-                                    navigate('/dashboard-user');
-                                }
-                            });
+                        onSuccess={async (credentialResponse) => {
+                            try {
+                                await loginWithGoogle(credentialResponse.credential);
+                                navigate('/'); // Redirect to home after successful Google signup
+                            } catch (error) {
+                                setErrMsg(error.message || 'Google signup failed');
+                            }
                         }}
                         onError={() => {
-                        console.log('Login Failed');
+                            setErrMsg('Google signup failed');
                         }}
                     />
                     </div>

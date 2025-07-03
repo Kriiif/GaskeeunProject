@@ -25,29 +25,60 @@ export function AuthProvider({ children }) {
 
   // Email/password login
   const login = async (email, password) => {
-    const res = await axios.post('http://localhost:3000/api/v1/auth/login', { email, password });
+    try {
+      const res = await axios.post('http://localhost:3000/api/v1/auth/login', { email, password });
 
-    if (!res.data?.token) throw new Error("Login failed");
+      if (!res.data?.token) throw new Error("Login failed");
 
-    console.log("Login successful:", res.data);
-    localStorage.setItem('token', res.data.token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-    setToken(res.data.token);
-    setUser(res.data.user);
+      console.log("Login successful:", res.data);
+      localStorage.setItem('token', res.data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      setToken(res.data.token);
+      setUser(res.data.user);
+    } catch (error) {
+      // Extract error message from response
+      const errorMessage = error.response?.data?.message || error.message || "Login failed";
+      throw new Error(errorMessage);
+    }
   };
 
   // Google login
   const loginWithGoogle = async (googleToken) => {
-    const res = await axios.post('http://localhost:3000/api/v1/auth/login-google', {
-      token: googleToken,
-    });
+    try {
+      const res = await axios.post('http://localhost:3000/api/v1/auth/login-google', {
+        token: googleToken,
+      });
 
-    if (!res.data?.token) throw new Error("Google login failed");
+      if (!res.data?.token) throw new Error("Google login failed");
 
-    localStorage.setItem('token', res.data.token);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
-    setToken(res.data.token);
-    setUser(res.data.user);
+      localStorage.setItem('token', res.data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      setToken(res.data.token);
+      setUser(res.data.user);
+    } catch (error) {
+      // Extract error message from response
+      const errorMessage = error.response?.data?.message || error.message || "Google login failed";
+      throw new Error(errorMessage);
+    }
+  };
+
+  // Signup
+  const signup = async (signupData) => {
+    try {
+      const res = await axios.post('http://localhost:3000/api/v1/auth/signup', signupData);
+
+      if (!res.data?.token) throw new Error("Signup failed");
+
+      console.log("Signup successful:", res.data);
+      localStorage.setItem('token', res.data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+      setToken(res.data.token);
+      setUser(res.data.user);
+    } catch (error) {
+      // Extract error message from response
+      const errorMessage = error.response?.data?.message || error.message || "Signup failed";
+      throw new Error(errorMessage);
+    }
   };
 
   // Logout
@@ -58,8 +89,50 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Update user profile
+  const updateProfile = async (profileData) => {
+    try {
+      const res = await axios.put('http://localhost:3000/api/v1/users/profile', profileData);
+      
+      if (res.data?.success) {
+        setUser(res.data.data); // Update user state with new data
+        return res.data;
+      }
+      throw new Error("Profile update failed");
+    } catch (error) {
+      // Extract error message from response
+      const errorMessage = error.response?.data?.message || error.message || "Profile update failed";
+      throw new Error(errorMessage);
+    }
+  };
+
+  // Change password
+  const changePassword = async (passwordData) => {
+    try {
+      const res = await axios.put('http://localhost:3000/api/v1/users/change-password', passwordData);
+      
+      if (res.data?.success) {
+        return res.data;
+      }
+      throw new Error("Password change failed");
+    } catch (error) {
+      // Extract error message from response
+      const errorMessage = error.response?.data?.message || error.message || "Password change failed";
+      throw new Error(errorMessage);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      loginWithGoogle, 
+      signup,
+      logout, 
+      updateProfile, 
+      changePassword 
+    }}>
       {children}
     </AuthContext.Provider>
   );
