@@ -7,6 +7,12 @@ const fieldSchema = new mongoose.Schema({
     trim: true
   },
 
+  venue_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Venue',
+    required: true
+  },
+
   category: {
     type: String,
     required: true
@@ -45,11 +51,6 @@ const fieldSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  },
-
-  created_at: {
-    type: Date,
-    default: Date.now
   }
 }, {
   versionKey: false

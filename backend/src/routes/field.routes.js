@@ -5,12 +5,23 @@ import Field from '../models/field.model.js';
 
 const router = express.Router();
 
+// Get all fields
+router.get('/', async (req, res) => {
+  try {
+    const fields = await Field.find({}).populate('owner_id', 'name');
+    res.status(200).json(fields);
+  } catch (err) {
+    console.error('Error fetching fields:', err);
+    res.status(500).json({ message: 'Terjadi kesalahan di server saat mengambil data lapangan' });
+  }
+});
+
 // Tambah field baru
 router.post('/', upload.single('image'), authorize, async (req, res) => {
   try {
-    const { name, category, price, desc, open_hour, close_hour } = req.body;
+    const { name, category, price, desc, open_hour, close_hour, location } = req.body;
 
-    if (!name || !category || !price || !desc || !open_hour || !close_hour) {
+    if (!name || !category || !price || !desc || !open_hour || !close_hour || !location) {
       return res.status(400).json({ message: 'Semua field wajib diisi' });
     }
 
@@ -30,6 +41,7 @@ router.post('/', upload.single('image'), authorize, async (req, res) => {
       category,
       price: parseInt(price),
       desc,
+      location,
       open_hour,
       close_hour,
       image_url,

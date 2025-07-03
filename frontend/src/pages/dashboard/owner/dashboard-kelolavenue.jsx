@@ -35,6 +35,7 @@ const KelolaLapanganDashboard = () => {
         category: '',
         price: '',
         desc: '',
+        location: '',
         open_hour: '',
         close_hour: '',
         image: null,
@@ -129,6 +130,7 @@ const KelolaLapanganDashboard = () => {
             category: '',
             price: '',
             desc: '',
+            location: '',
             open_hour: '',
             close_hour: '',
             image: null,
@@ -160,6 +162,7 @@ const KelolaLapanganDashboard = () => {
         formData.append('category', addFormData.category);
         formData.append('price', addFormData.price);
         formData.append('desc', addFormData.desc);
+        formData.append('location', addFormData.location);
         formData.append('open_hour', addFormData.open_hour);
         formData.append('close_hour', addFormData.close_hour);
         if (addFormData.image) {
@@ -427,7 +430,11 @@ const KelolaLapanganDashboard = () => {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="name" className="text-right font-medium">Nama</label>
-                            <Input id="name" name="name" value={addFormData.name} onChange={handleAddFormChange} className="col-span-3"/>
+                            <Input id="name" value={addFormData.name} onChange={handleAddFormChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <label htmlFor="location" className="text-right font-medium">Lokasi</label>
+                            <Input id="location" value={addFormData.location} onChange={handleAddFormChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="category" className="text-right font-medium">Kategori</label>

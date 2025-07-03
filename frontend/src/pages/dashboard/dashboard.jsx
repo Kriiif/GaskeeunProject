@@ -25,43 +25,10 @@ const carouselImages = [
   { src: '/carausel/tenniscourt.jpg', alt: 'Tennis Court', title: 'Tenis' },
 ];
 
-const allVenues = [
-  {
-    name: 'Jonhar Arena',
-    rating: 5.0,
-    location: 'Kota Jakarta Pusat',
-    price: { amount: 'Rp 150.000', per: '/ Sesi' },
-    sports: ['Futsal', 'Badminton'],
-    image: '/venue/jorhar.png'
-  },
-  {
-    name: 'Vlocity Arena',
-    rating: 4.0,
-    location: 'Kota Jakarta Barat',
-    price: { amount: 'Rp 90.000', per: '/ Sesi' },
-    sports: ['Basket', 'Tenis'],
-    image: '/venue/tenis.jpg'
-  },
-  {
-    name: 'GOR Kurnia',
-    rating: 4.3,
-    location: 'Kota Jakarta Timur',
-    price: { amount: 'Rp 70.000', per: '/ Sesi' },
-    sports: ['Badminton'],
-    image: '/venue/badmin1.jpg'
-  },
-  {
-    name: 'Johar Arena',
-    rating: 1.0,
-    location: 'Kota Jakarta Pusat',
-    price: { amount: 'Rp 50.000', per: '/ Sesi' },
-    sports: ['Futsal'],
-    image: '/venue/futsal1.jpg'
-  },
-];
-
 export default function Dashboard() {
   const { user } = useAuth();
+  const [allVenues, setAllVenues] = useState([]);
+  const [filteredVenues, setFilteredVenues] = useState([]);
   const [venueName, setVenueName] = useState('');
   const [city, setCity] = useState('');
   const [sportType, setSportType] = useState('');
@@ -69,7 +36,22 @@ export default function Dashboard() {
   const [cartItems, setCartItems] = useState([]);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const [filteredVenues, setFilteredVenues] = useState(allVenues);
+  useEffect(() => {
+    const fetchVenues = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/v1/fields');
+        if (!response.ok) {
+          throw new Error('Gagal mengambil data');
+        }
+        const data = await response.json();
+        setAllVenues(data);
+        setFilteredVenues(data);
+      } catch (error) {
+        console.error('Error fetching venues:', error);
+      }
+    };
+    fetchVenues();
+  }, []);
 
   const removeFromCart = (slotId, fieldId, date) => {
     setCartItems(cartItems.filter(item => !(item.slotId === slotId && item.fieldId === fieldId && item.date === date)));
@@ -94,22 +76,18 @@ export default function Dashboard() {
     // Perubahan di sini: Jika sportType adalah "All", jangan filter berdasarkan olahraga
     if (sportType && sportType !== 'All') {
       tempVenues = tempVenues.filter(venue =>
-        venue.sports.includes(sportType)
+        venue.category.includes(sportType)
       );
     }
 
     // Terapkan pengurutan ke hasil filter
     tempVenues.sort((a, b) => {
-      const priceA = parseFloat(a.price.amount.replace('Rp ', '').replace('.', ''));
-      const priceB = parseFloat(b.price.amount.replace('Rp ', '').replace('.', ''));
-
       if (sortBy === 'Harga Tertinggi') {
-        return priceB - priceA;
+        return b.price - a.price;
       } else if (sortBy === 'Harga Terendah') {
-        return priceA - priceB;
-      } else if (sortBy === 'Rating Tertinggi') {
-        return b.rating - a.rating;
+        return a.price - b.price;
       }
+      // Rating sort removed
       return 0;
     });
 
@@ -119,28 +97,8 @@ export default function Dashboard() {
   // Menerapkan filter setiap kali venueName, city, atau sportType berubah
   useEffect(() => {
     applyFilters();
-  }, [venueName, city, sportType]);
+  }, [venueName, city, sportType, sortBy, allVenues]);
 
-  // Mengurutkan venue berdasarkan pilihan sortBy setiap kali sortBy berubah
-  useEffect(() => {
-    const sortedCurrentVenues = [...filteredVenues];
-
-    sortedCurrentVenues.sort((a, b) => {
-      const priceA = parseFloat(a.price.amount.replace('Rp ', '').replace('.', ''));
-      const priceB = parseFloat(b.price.amount.replace('Rp ', '').replace('.', ''));
-
-      if (sortBy === 'Harga Tertinggi') {
-        return priceB - priceA;
-      } else if (sortBy === 'Harga Terendah') {
-        return priceA - priceB;
-      } else if (sortBy === 'Rating Tertinggi') {
-        return b.rating - a.rating;
-      }
-      return 0;
-    });
-
-    setFilteredVenues(sortedCurrentVenues);
-  }, [sortBy]);
 
   return (
     <div className="min-h-screen font-sans">
@@ -210,7 +168,6 @@ export default function Dashboard() {
                 <SelectContent>
                     <SelectItem value="Harga Tertinggi">Harga Tertinggi</SelectItem>
                     <SelectItem value="Harga Terendah">Harga Terendah</SelectItem>
-                    <SelectItem value="Rating Tertinggi">Rating Tertinggi</SelectItem>
                 </SelectContent>
                 </Select>
             </div>
@@ -218,35 +175,30 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredVenues.map((venue, index) => (
             <Card key={index} className="overflow-hidden pt-0 mb-0">
-              <img src={venue.image} alt={venue.name} className="w-full h-48 object-cover" />
+              <img src={`http://localhost:3000${venue.image_url}`} alt={venue.name} className="w-full h-48 object-cover" />
               <CardHeader className="px-4 pb-0">
-                <CardDescription className="text-sm text-gray-500 mb-1">Venue</CardDescription>
+                <CardDescription className="text-sm text-gray-500 mb-1">{venue.category}</CardDescription>
                 <CardTitle className="text-xl font-semibold text-gray-800 leading-tight">{venue.name}</CardTitle>
                 <CardDescription className="flex items-center text-gray-600 text-sm mt-1">
-                  <span className="text-yellow-500 mr-1">⭐</span>
-                  <span className="font-medium text-gray-700">{venue.rating}</span>
-                  <span className="mx-1">•</span>
-                  <span>{venue.location}</span>
+                  <span className="font-medium text-gray-700">{venue.location}</span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-4">
                 <div className="flex items-center text-gray-700 text-sm space-x-3">
-                  {venue.sports.map((sport, sIdx) => (
-                    <span key={sIdx} className="flex">
-                      {sport === 'Futsal' && <span>⚽</span>}
-                      {sport === 'Badminton' && <span>🏸</span>}
-                      {sport === 'Basket' && <span>🏀</span>}
-                      {sport === 'Tenis' && <span>🎾</span>}
-                      {sport}
+                    <span className="flex">
+                      {venue.category === 'Futsal' && <span>⚽</span>}
+                      {venue.category === 'Badminton' && <span>🏸</span>}
+                      {venue.category === 'Basket' && <span>🏀</span>}
+                      {venue.category === 'Tenis' && <span>🎾</span>}
+                      {venue.category}
                     </span>
-                  ))}
                 </div>
               </CardContent>
               <CardFooter className="p-4 pt-0">
                 <div className="flex items-baseline text-gray-800">
                   <span className="text-sm mr-1">Mulai</span>
-                  <span className="font-bold text-xl">{venue.price.amount}</span>
-                  <span className="text-sm ml-1">{venue.price.per}</span>
+                  <span className="font-bold text-xl">Rp {venue.price.toLocaleString('id-ID')}</span>
+                  <span className="text-sm ml-1">/ Sesi</span>
                 </div>
               </CardFooter>
             </Card>
