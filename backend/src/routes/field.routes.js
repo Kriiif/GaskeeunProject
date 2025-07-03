@@ -138,4 +138,24 @@ router.put('/:id', upload.single('image'), authorize, async (req, res) => {
   }
 });
 
+// Delete field by ID
+router.delete('/:id', authorize, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const field = await Field.findById(id);
+    if (!field) {
+      return res.status(404).json({ message: 'Lapangan tidak ditemukan' });
+    }
+    // Pastikan user yang menghapus adalah pemilik lapangan
+    if (field.owner_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Anda tidak memiliki izin untuk menghapus lapangan ini' });
+    }
+    await Field.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: 'Lapangan berhasil dihapus' });
+  } catch (err) {
+    console.error('Error deleting field:', err);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan di server saat menghapus data lapangan' });
+  }
+});
+
 export default router;
