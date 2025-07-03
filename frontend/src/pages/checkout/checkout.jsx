@@ -1,7 +1,93 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Star, Trash2 } from 'lucide-react';
+import useAuth from '../../hooks/useAuth'; // Pastikan path ini benar
 
 const CheckoutPage = () => {
+  const { token } = useAuth(); // Mengambil token dari AuthContext
+
+  // Dummy data untuk item di keranjang
+  const [cartItems, setCartItems] = useState([
+    {
+      id: 'FIELD-01',
+      name: 'Lapangan 1',
+      price: 70000,
+      quantity: 1,
+      info: 'Selasa, 30 Juni 2025 • 11.00 - 12.00'
+    }
+  ]);
+
+  const grossAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+  // Load Midtrans Snap script
+  useEffect(() => {
+    const snapScript = "https://app.sandbox.midtrans.com/snap/snap.js";
+    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
+
+    const script = document.createElement('script');
+    script.src = snapScript;
+    script.setAttribute('data-client-key', clientKey);
+    script.async = true;
+
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleCheckout = async () => {
+    const items = cartItems.map(item => ({
+      id: item.id,
+      price: item.price,
+      quantity: item.quantity,
+      name: item.name
+    }));
+
+    try {
+      const response = await fetch('http://localhost:3000/api/v1/payment/create-transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          gross_amount: grossAmount,
+          items: items
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Gagal membuat transaksi');
+      }
+
+      const transaction = await response.json();
+      
+      window.snap.pay(transaction.token, {
+        onSuccess: function(result){
+          /* You may add your own implementation here */
+          alert("payment success!"); console.log(result);
+        },
+        onPending: function(result){
+          /* You may add your own implementation here */
+          alert("wating your payment!"); console.log(result);
+        },
+        onError: function(result){
+          /* You may add your own implementation here */
+          alert("payment failed!"); console.log(result);
+        },
+        onClose: function(){
+          /* You may add your own implementation here */
+          alert('you closed the popup without finishing the payment');
+        }
+      });
+
+    } catch (error) {
+      console.error('Checkout Error:', error);
+      alert(error.message);
+    }
+  };
+    
   return (
     <div className="min-h-screen bg-white p-6">
       {/* Main Content Card */}
@@ -53,7 +139,7 @@ const CheckoutPage = () => {
 
           {/* Action Button */}
           <div className="flex justify-end">
-            <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md transition-colors">
+            <button onClick={handleCheckout} className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-md transition-colors">
               Gaskeeun!
             </button>
           </div>

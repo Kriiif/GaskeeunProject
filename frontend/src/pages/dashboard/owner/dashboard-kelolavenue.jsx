@@ -497,10 +497,6 @@ const KelolaLapanganDashboard = () => {
                             <label htmlFor="name" className="text-right font-medium">Nama</label>
                             <Input id="name" name="name" value={editFormData.name} onChange={handleEditFormChange} className="col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="location" className="text-right font-medium">Lokasi</label>
-                            <Input id="location" name="location" value={editFormData.location} onChange={handleEditFormChange} className="col-span-3" />
-                        </div>
                         {/* --- START: Added Form Fields --- */}
                         <div className="grid grid-cols-4 items-center gap-4">
                             <label htmlFor="category" className="text-right font-medium">Kategori</label>

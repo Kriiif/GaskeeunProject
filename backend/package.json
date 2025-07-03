@@ -22,9 +22,11 @@
     "express": "^5.1.0",
     "google-auth-library": "^10.1.0",
     "jsonwebtoken": "^9.0.2",
+    "midtrans-client": "^1.4.3",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
-    "multer": "^2.0.1"
+    "multer": "^2.0.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

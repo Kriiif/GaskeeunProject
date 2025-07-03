@@ -9,6 +9,7 @@ import connectToDatabase from './database/mongodb.js'
 import errorMiddleware from './middlewares/error.middleware.js'
 import cookieParser from 'cookie-parser'
 import fieldRoutes from './routes/field.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
 
 
 dotenv.config()
@@ -27,7 +28,10 @@ app.use(express.static('public'));
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/posts', postRoutes)
+app.use('/api/v1/fields', fieldRoutes);
+app.use('/api/v1/payment', paymentRoutes);
 
+// Middleware untuk error handling
 app.use(errorMiddleware)
 
 app.get('/', (req, res) => {
@@ -37,8 +41,6 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString()
   })
 })
-
-app.use('/api/v1/fields', fieldRoutes); 
 
 // Health check
 app.get('/health', (req, res) => {
