@@ -47,6 +47,10 @@ const VenueDetailPage = () => {
   
   const [venue, setVenue] = useState(null);
   const [fields, setFields] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [cartItems, setCartItems] = useState([]);
@@ -75,6 +79,34 @@ const VenueDetailPage = () => {
 
     fetchCart();
   }, [user, token]);
+
+  // Fetch reviews for the venue
+  useEffect(() => {
+    const fetchReviews = async () => {
+      if (venueId) {
+        try {
+          setReviewsLoading(true);
+          const response = await axios.get(`http://localhost:3000/api/v1/reviews/venue/${venueId}`);
+          
+          if (response.data.success) {
+            setReviews(response.data.data.reviews);
+            setAverageRating(response.data.data.averageRating);
+            setTotalReviews(response.data.data.totalReviews);
+          }
+        } catch (error) {
+          console.error("Failed to fetch reviews:", error);
+          // Set empty reviews on error
+          setReviews([]);
+          setAverageRating(0);
+          setTotalReviews(0);
+        } finally {
+          setReviewsLoading(false);
+        }
+      }
+    };
+
+    fetchReviews();
+  }, [venueId]);
   
   // Helper function to generate time slots
   const generateTimeSlots = (openHour, closeHour, fieldId, price) => {
@@ -144,18 +176,12 @@ const VenueDetailPage = () => {
               ? `http://localhost:3000/uploads/${venueData.partner_req_id.fotoVenue}` 
               : '/venue/default.jpg',
             sports: venueData.sports || ['Multi-Sport'],
-            rating: 4.5, // Default rating, you can enhance this later
             location: venueData.partner_req_id?.lokasiVenue || 'Unknown Location',
             price: `Rp. ${(venueData.price || 50000).toLocaleString('id-ID')}/Sesi`,
             description: venueData.description || 'No description available',
             owner: venueData.partner_req_id?.namaPemilik || 'Unknown Owner',
             email: venueData.partner_req_id?.email || '',
-            phone: venueData.partner_req_id?.nomorTelepon || '',
-            // Mock reviews - you'll need to implement a proper review system later
-            reviews: [
-              { user: "Anonymous User", text: "Venue yang bagus dan nyaman untuk bermain olahraga.", rating: 4.5, avatar: "https://via.placeholder.com/40/CCCCCC/FFFFFF?text=AU" },
-              { user: "Sport Enthusiast", text: "Fasilitas lengkap dan pelayanan memuaskan.", rating: 4.3, avatar: "https://via.placeholder.com/40/CCCCCC/FFFFFF?text=SE" },
-            ]
+            phone: venueData.partner_req_id?.nomorTelepon || ''
           };
           
           setVenue(formattedVenue);
@@ -363,7 +389,7 @@ const VenueDetailPage = () => {
                 <h1 className="text-3xl font-bold text-gray-800">{venue.name}</h1>
                 <div className="flex items-center text-gray-600 text-base mb-4">
                   <span className="text-yellow-500 mr-1">⭐</span>
-                  <span className="font-medium">{venue.rating}</span>
+                  <span className="font-medium">{averageRating > 0 ? averageRating : 'Belum ada rating'}</span>
                   <span className="mx-1">•</span>
                   <span>{venue.location.split(',')[0]}, {venue.location.split(',')[1]}</span>
                 </div>
@@ -517,31 +543,59 @@ const VenueDetailPage = () => {
         {/* Review Section */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Review</h2>
-          <div className="flex items-center text-gray-700 text-lg mb-4">
-            <span className="text-yellow-500 text-xl mr-2">⭐</span>
-            <span className="font-bold">{venue.rating}</span>
-            <span className="ml-1 text-gray-500">({venue.reviews.length} reviews)</span>
-          </div>
-
-          <div className="space-y-6">
-            {venue.reviews.map((review, idx) => (
-              <div key={idx} className="flex items-start border-t border-gray-100 pt-4 first:border-t-0 first:pt-0">
-                <img
-                  src={review.avatar}
-                  alt={review.user}
-                  className="w-10 h-10 rounded-full mr-3 flex-shrink-0"
-                />
-                <div>
-                  <h4 className="font-semibold text-gray-800">{review.user}</h4>
-                  <div className="flex items-center text-yellow-500 text-sm mb-1">
-                    <span className="mr-1">⭐</span>
-                    <span>{review.rating}</span>
-                  </div>
-                  <p className="text-gray-700 text-sm">{review.text}</p>
-                </div>
+          
+          {reviewsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center text-gray-700 text-lg mb-4">
+                <span className="text-yellow-500 text-xl mr-2">⭐</span>
+                <span className="font-bold">{averageRating > 0 ? averageRating : 'Belum ada rating'}</span>
+                <span className="ml-1 text-gray-500">({totalReviews} reviews)</span>
               </div>
-            ))}
-          </div>
+
+              {reviews.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 text-lg">Belum ada review</p>
+                  <p className="text-gray-400 text-sm">Jadilah yang pertama memberikan review untuk venue ini</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {reviews.map((review) => (
+                    <div key={review._id} className="flex items-start border-t border-gray-100 pt-4 first:border-t-0 first:pt-0">
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-green-600 font-semibold text-sm">
+                          {review.user_id?.name?.charAt(0).toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">{review.user_id?.name || 'Anonymous User'}</h4>
+                        <div className="flex items-center text-yellow-500 text-sm mb-1">
+                          <span className="mr-1">⭐</span>
+                          <span>{review.rating}</span>
+                        </div>
+                        <p className="text-gray-700 text-sm mb-1">{review.comment || 'Tidak ada komentar'}</p>
+                        <p className="text-gray-400 text-xs">
+                          {new Date(review.created_at).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                        {review.field_id && (
+                          <p className="text-gray-500 text-xs mt-1">
+                            Lapangan: {review.field_id.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 

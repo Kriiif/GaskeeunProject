@@ -173,3 +173,35 @@ export const deleteReview = async (req, res, next) => {
         next(error);
     }
 };
+
+export const getReviewsByVenue = async (req, res, next) => {
+    try {
+        const { venue_id } = req.params;
+
+        // First, get all fields for this venue
+        const fields = await Field.find({ venue_id });
+        const fieldIds = fields.map(field => field._id);
+
+        // Then, get all reviews for these fields
+        const reviews = await Review.find({ field_id: { $in: fieldIds } })
+            .populate('user_id', 'name')
+            .populate('field_id', 'name')
+            .sort({ created_at: -1 });
+
+        // Calculate average rating
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : 0;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                reviews,
+                averageRating: parseFloat(averageRating),
+                totalReviews: reviews.length
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching venue reviews:", error);
+        next(error);
+    }
+};

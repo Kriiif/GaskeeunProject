@@ -2,6 +2,7 @@ import express from 'express';
 import { 
     createReview, 
     getReviewsByField, 
+    getReviewsByVenue,
     getUserReviews, 
     updateReview, 
     deleteReview 
@@ -15,6 +16,9 @@ router.post('/', authorize, createReview);
 
 // Get all reviews for a specific field
 router.get('/field/:field_id', getReviewsByField);
+
+// Get all reviews for a specific venue
+router.get('/venue/:venue_id', getReviewsByVenue);
 
 // Get all reviews by the authenticated user
 router.get('/user', authorize, getUserReviews);
