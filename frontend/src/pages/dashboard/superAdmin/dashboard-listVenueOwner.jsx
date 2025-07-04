@@ -35,11 +35,13 @@ const DashboardListOwnerVenue = () => {
                 });
                 const data = await res.json();
                 if (res.ok && data.success && Array.isArray(data.data)) {
-                    // Only show approved owners
-                    // Fetch venue status for each owner
-                    const owners = await Promise.all(data.data.filter(req => req.status === 'approved').map(async req => {
+                    // Only show approved owners that have a venue
+                    const owners = [];
+                    for (const req of data.data) {
+                        if (req.status !== 'approved') continue;
                         let venueId = null;
-                        let venueStatus = 'Active';
+                        let venueStatus = null;
+                        let hasVenue = false;
                         try {
                             const venueRes = await fetch(`http://localhost:3000/api/v1/partnership/${req._id}/venue`, {
                                 headers: { 'Authorization': `Bearer ${token}` }
@@ -48,18 +50,21 @@ const DashboardListOwnerVenue = () => {
                             if (venueRes.ok && venueData.success && venueData.data) {
                                 venueId = venueData.data._id;
                                 venueStatus = venueData.data.status === 'banned' ? 'Banned' : 'Active';
+                                hasVenue = true;
                             }
                         } catch {}
-                        return {
-                            id: req._id,
-                            customer: req.namaPemilik,
-                            venueName: req.namaVenue,
-                            status: venueStatus,
-                            imageUrl: req.fotoVenue ? `/uploads/${req.fotoVenue}` : '/venue/default.jpg',
-                            partnerReqId: req._id,
-                            venueId
-                        };
-                    }));
+                        if (hasVenue) {
+                            owners.push({
+                                id: req._id,
+                                customer: req.namaPemilik,
+                                venueName: req.namaVenue,
+                                status: venueStatus,
+                                imageUrl: req.fotoVenue ? `/uploads/${req.fotoVenue}` : '/venue/default.jpg',
+                                partnerReqId: req._id,
+                                venueId
+                            });
+                        }
+                    }
                     setvenueOwner(owners);
                 }
             } catch (err) {
