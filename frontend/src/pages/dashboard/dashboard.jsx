@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '@/hooks/useAuth';
 import { Header } from '@/components/header';
@@ -74,6 +74,18 @@ export default function Dashboard() {
     };
     fetchVenues();
   }, []);
+
+  const sportTypes = [
+    'Futsal',
+    'Badminton',
+    'Tennis',
+    'Mini Soccer',
+    'Padel',
+    'Golf',
+    'Soccer',
+    'Basketball',
+  ];
+
   const removeFromCart = (slotId, fieldId, date) => {
     setCartItems(cartItems.filter(item => !(item.slotId === slotId && item.fieldId === fieldId && item.date === date)));
   };
@@ -99,8 +111,9 @@ export default function Dashboard() {
       );
     }
 
-    // For venues, we'll show all since they are multi-sport
-    // sportType filter can be removed or kept for future enhancement
+    if (sportType && sportType !== 'all') {
+      tempVenues = tempVenues.filter(venue => venue.sports.includes(sportType));
+    }
 
     // Apply sorting to filtered results
     tempVenues.sort((a, b) => {
@@ -119,7 +132,7 @@ export default function Dashboard() {
   // Menerapkan filter setiap kali venueName, city, atau sortBy berubah
   useEffect(() => {
     applyFilters();
-  }, [venueName, city, sortBy, allVenues]);
+  }, [venueName, city, sportType, sortBy, allVenues]);
 
 
   return (
@@ -163,6 +176,17 @@ export default function Dashboard() {
             value={city}
             onChange={(e) => setCity(e.target.value)}
           />
+          <Select onValueChange={setSportType} value={sportType}>
+            <SelectTrigger className="flex-1 min-w-[200px]">
+              <SelectValue placeholder="Pilih Cabor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Cabor</SelectItem>
+              {sportTypes.map(sport => (
+                <SelectItem key={sport} value={sport}>{sport}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>        {/* Venue List Header */}
         <div className="flex justify-between items-center mb-6">
             <p className="text-gray-700 text-lg">Menemukan <span className="font-bold">{filteredVenues.length}</span> Venue Tersedia</p>
@@ -190,15 +214,14 @@ export default function Dashboard() {
                 key={venue.id || index} 
                 className="overflow-hidden pt-0 mb-0 hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => handleVenueClick(venue.id)}
-              >
-                <img 
-                  src={`http://localhost:3000${venue.image_url}`} 
+              >                <img 
+                  src={venue.image_url} 
                   alt={venue.name} 
                   className="w-full h-48 object-cover"
                   onError={(e) => {
                     e.target.src = '/venue/default.jpg';
                   }}
-                />                <CardHeader className="px-4 pb-0">
+                /><CardHeader className="px-4 pb-0">
                   <CardTitle className="text-xl font-semibold text-gray-800 leading-tight">
                     {venue.name}
                   </CardTitle>
@@ -209,10 +232,11 @@ export default function Dashboard() {
                   <div className="flex items-center text-gray-700 text-sm space-x-3">
                     <span className="flex items-center">
                       <span className="mr-1">🏟️</span>
-                      {venue.sports && venue.sports.length > 0 
+                      {/* {venue.sports && venue.sports.length > 0 
                         ? venue.sports.slice(0, 2).join(', ') + (venue.sports.length > 2 ? '...' : '')
                         : 'Multi-Sport'
-                      }
+                      } */}
+                      futsal
                     </span>
                   </div>
                   {venue.description && (
