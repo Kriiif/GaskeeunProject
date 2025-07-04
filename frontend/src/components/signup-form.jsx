@@ -1,4 +1,4 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,7 +10,7 @@ import { AuthContext } from '../contexts/AuthContext';
 
 export function SignupForm({ className, ...props }) {
     const navigate = useNavigate()
-    const { signup, loginWithGoogle } = useContext(AuthContext)
+    const { signup, loginWithGoogle, user } = useContext(AuthContext)
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
@@ -20,6 +20,19 @@ export function SignupForm({ className, ...props }) {
     })
     const [errMsg, setErrMsg] = useState("")
     const [loading, setLoading] = useState(false)
+
+    // Handle redirect based on user role after signup
+    useEffect(() => {
+        if (!user) return;
+
+        if (user.role === 'owner') {
+            navigate('/dashboard-main');
+        } else if (user.role === 'admin') {
+            navigate('/dashboard-superAdmin');
+        } else {
+            navigate('/');
+        }
+    }, [user, navigate]);
 
     const handleChange = (e) => {
         setErrMsg("")
@@ -45,8 +58,7 @@ export function SignupForm({ className, ...props }) {
             
             await signup(signupData)
             
-            // Redirect to home page after successful signup
-            navigate("/")
+            // Redirect akan ditangani oleh useEffect berdasarkan role
 
         } catch (error) {
             setErrMsg(error.message || "Signup failed")
@@ -102,7 +114,7 @@ export function SignupForm({ className, ...props }) {
                         onSuccess={async (credentialResponse) => {
                             try {
                                 await loginWithGoogle(credentialResponse.credential);
-                                navigate('/'); // Redirect to home after successful Google signup
+                                // Redirect akan ditangani oleh useEffect berdasarkan role
                             } catch (error) {
                                 setErrMsg(error.message || 'Google signup failed');
                             }

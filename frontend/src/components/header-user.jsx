@@ -64,10 +64,14 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
                             <span>Profil</span>
                         </DropdownMenuItem>                        <DropdownMenuItem onClick={() => navigate('/history-user')}>
                             <span>Riwayat Reservasi</span>
-                        </DropdownMenuItem>
-                        {user?.role === 'owner' && (
+                        </DropdownMenuItem>                        {user?.role === 'owner' && (
                             <DropdownMenuItem onClick={() => navigate('/dashboard-main')} >
                                 <span>Dashboard Pemilik Venue</span>
+                            </DropdownMenuItem>
+                        )}
+                        {user?.role === 'admin' && (
+                            <DropdownMenuItem onClick={() => navigate('/dashboard-superAdmin')} >
+                                <span>Dashboard Super Admin</span>
                             </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />

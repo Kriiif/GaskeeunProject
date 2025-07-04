@@ -10,12 +10,13 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm({ className, ...props }) {
   const navigate = useNavigate();
-  const { login, loginWithGoogle, user } = useAuth();
-  useEffect(() => {
+  const { login, loginWithGoogle, user } = useAuth();  useEffect(() => {
     if (!user) return;
 
     if (user.role === 'owner') {
       navigate('/dashboard-main');
+    } else if (user.role === 'admin') {
+      navigate('/dashboard-superAdmin');
     } else {
       navigate('/');
     }
