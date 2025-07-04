@@ -2,7 +2,7 @@ import React from 'react'; // No need for useState here, as states will be passe
 import { Button } from '@/components/ui/button';
 import { Home, List, ShoppingCart, User, Menu, Bell, Star, CalendarIcon, Edit, X, Search, TrendingUp, ScrollText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import CustomDropdownOwner from '@/components/dropdown-owner';
+import CustomDropdownAdmin from './dropdown-admin';
 
 // Destructure props: isSidebarOpen, setIsSidebarOpen, activeMenuItem, setActiveMenuItem
 const CustomSidebarSuperAdmin = ({ isSidebarOpen, setIsSidebarOpen, activeMenuItem, setActiveMenuItem }) => {
@@ -66,6 +66,7 @@ const CustomSidebarSuperAdmin = ({ isSidebarOpen, setIsSidebarOpen, activeMenuIt
                     
                 </nav>
             </div>
+            <CustomDropdownAdmin/>
         </aside>
     );
 }
