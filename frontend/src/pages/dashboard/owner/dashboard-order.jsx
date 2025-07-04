@@ -42,18 +42,22 @@ const DashboardOrder = () => {
     const [orders, setOrders] = useState([]);
 
     useEffect(() => {
-        const fetchOrders = async () => {
-            try {
+        const fetchOrders = async () => {            try {
                 const response = await axios.get('http://localhost:3000/api/v1/bookings');
-                const formattedOrders = response.data.map(order => ({
-                    id: order.order_id,
-                    customer: order.user_id.name,
-                    fieldName: order.field_id.name, // Add fieldName
-                    date: new Date(order.booking_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }),
-                    session: order.booking_time,
-                    totalPrice: `Rp ${order.field_id.price.toLocaleString('id-ID')}`,
-                    status: order.status
-                }));
+                const formattedOrders = response.data.map(order => {
+                    // Handle field_id as array (get first field)
+                    const field = Array.isArray(order.field_id) ? order.field_id[0] : order.field_id;
+                    
+                    return {
+                        id: order.order_id,
+                        customer: order.user_id?.name || 'Unknown',
+                        fieldName: field?.name || 'Unknown Field',
+                        date: new Date(order.booking_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }),
+                        session: order.booking_time,
+                        totalPrice: field?.price ? `Rp ${field.price.toLocaleString('id-ID')}` : 'Rp 0',
+                        status: order.status
+                    };
+                });
                 setOrders(formattedOrders);
             } catch (error) {
                 console.error('Error fetching orders:', error);
