@@ -92,7 +92,6 @@ router.put('/:id/status', authorize, async (req, res) => {
         if (status === 'approved') {
             // Check if venue already exists for this partnership request
             const existingVenue = await Venue.findOne({ partner_req_id: id });
-            
             if (!existingVenue) {
                 const newVenue = new Venue({
                     description: `${partnerRequest.namaVenue} - ${partnerRequest.lokasiVenue}`,
@@ -101,10 +100,13 @@ router.put('/:id/status', authorize, async (req, res) => {
                     price: 75000, // Default price, can be customized later
                     sports: ['Futsal', 'Badminton'] // Default sports, can be customized later
                 });
-
                 await newVenue.save();
                 console.log('New venue created:', newVenue);
             }
+            // Update user role to 'owner'
+            await import('../models/user.model.js').then(async ({ default: User }) => {
+                await User.findByIdAndUpdate(partnerRequest.user_id, { role: 'owner' });
+            });
         }
 
         res.status(200).json({
