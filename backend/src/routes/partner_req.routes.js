@@ -142,4 +142,49 @@ router.get('/:id/venue', authorize, async (req, res) => {
     }
 });
 
+// Update venue owner status (superadmin toggle active/banned)
+router.put('/:id/owner-status', authorize, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body; // status: 'approved' or 'banned'
+        if (!['approved', 'banned'].includes(status)) {
+            return res.status(400).json({ message: 'Status tidak valid' });
+        }
+        // If banned, set status to 'banned', if active, set to 'approved'
+        const updated = await PartnerRequest.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true }
+        );
+        if (!updated) {
+            return res.status(404).json({ message: 'Partner request tidak ditemukan' });
+        }
+        res.status(200).json({ success: true, data: updated });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Terjadi kesalahan di server' });
+    }
+});
+
+// Update venue status (superadmin toggle active/banned)
+router.put('/venue/:venueId/status', authorize, async (req, res) => {
+    try {
+        const { venueId } = req.params;
+        const { status } = req.body; // status: 'active' or 'banned'
+        if (!['active', 'banned'].includes(status)) {
+            return res.status(400).json({ message: 'Status tidak valid' });
+        }
+        const updated = await Venue.findByIdAndUpdate(
+            venueId,
+            { status },
+            { new: true }
+        );
+        if (!updated) {
+            return res.status(404).json({ message: 'Venue tidak ditemukan' });
+        }
+        res.status(200).json({ success: true, data: updated });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Terjadi kesalahan di server' });
+    }
+});
+
 export default router;

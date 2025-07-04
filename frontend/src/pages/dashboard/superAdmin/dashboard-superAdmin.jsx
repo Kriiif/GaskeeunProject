@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -9,16 +9,55 @@ const DashboardSuperAdmin = () => {
     const [activeMenuItem, setActiveMenuItem] = useState('Dashboard');
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [stats, setStats] = useState({
+        totalRevenue: 0,
+        totalApply: 0,
+        totalVenueOwner: 0,
+        revenueGrowth: 0,
+        visitsGrowth: 0,
+        reservationsGrowth: 0
+    });
+    const [recentApply, setRecentApply] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Sample data for statistics
-    const stats = {
-        totalRevenue: 30000000,
-        totalApply: 20,
-        totalVenueOwner: 30,
-        revenueGrowth: 100,
-        visitsGrowth: 80,
-        reservationsGrowth: 10
-    };
+    useEffect(() => {
+        const fetchStatsAndApply = async () => {
+            setLoading(true);
+            setError(null);
+            const token = localStorage.getItem('token');
+            try {
+                // Fetch stats
+                const statsRes = await fetch('http://localhost:3000/api/v1/dashboard/superadmin/stats', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const statsData = await statsRes.json();
+                if (statsRes.ok && statsData.stats) setStats(statsData.stats);
+
+                // Fetch recent apply
+                const applyRes = await fetch('http://localhost:3000/api/v1/partnership', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const applyData = await applyRes.json();
+                if (applyRes.ok && applyData.success && Array.isArray(applyData.data)) {
+                    setRecentApply(applyData.data.slice(0, 10).map(request => ({
+                        id: request._id,
+                        customer: request.namaPemilik,
+                        venueName: request.namaVenue,
+                        dateApply: new Date(request.created_at).toLocaleDateString('id-ID', {
+                            day: 'numeric', month: 'long', year: 'numeric'
+                        }),
+                        status: request.status === 'on hold' ? 'On Hold' : request.status === 'approved' ? 'Accepted' : 'Rejected',
+                    })));
+                }
+            } catch (err) {
+                setError('Gagal mengambil data dari server');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStatsAndApply();
+    }, []);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('id-ID', {
@@ -28,26 +67,39 @@ const DashboardSuperAdmin = () => {
         }).format(amount);
     };
 
-    const recentApply = [
-        { id: '1', customer: 'Pham Hanni', venueName: 'Vlocity Arena', dateApply: '26 June 2025', status: 'On Hold' },
-        { id: '2', customer: 'Heru Budi', venueName: 'ClinciG Arena', dateApply: '26 June 2025', status: 'On Hold' },
-        { id: '3', customer: 'Pham Minji', venueName: 'Jonhar Arena', dateApply: '26 June 2025', status: 'On Hold' },
-        { id: '4', customer: 'Pham Uri', venueName: 'Grogol Arena', dateApply: '26 June 2025', status: 'On Hold' },
-        { id: '5', customer: 'Pham Haerin', venueName: 'MPL Arena', dateApply: '26 June 2025', status: 'Accepted' }
-    ];
+    // Ganti recentApply.map dengan filteredRecentApply.map jika ingin search
+    const filteredRecentApply = recentApply.filter(apply =>
+        (apply.customer || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (apply.venueName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (apply.status || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-    // handleLogout and handleChangePassword functions can stay here
-    // as they define actions within the dashboard context or trigger navigations.
-    const handleLogout = () => {
-        console.log("Logging out...");
-        navigate('/login');
-    };
+    if (loading) {
+        return (
+            <div className="flex min-h-screen bg-gray-100 font-sans relative">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto"></div>
+                        <p className="mt-4 text-lg text-gray-600">Loading dashboard data...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-    const handleChangePassword = () => {
-        console.log("Changing password...");
-        navigate('/verification');
-    };
-    
+    if (error) {
+        return (
+            <div className="flex min-h-screen bg-gray-100 font-sans relative">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <p className="text-lg text-red-600">{error}</p>
+                        <Button onClick={() => window.location.reload()} className="mt-4 bg-green-500 hover:bg-green-700">Try Again</Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return(
         <div className="flex min-h-screen font-sans relative">
             {/* Overlay for mobile when sidebar is open */}
@@ -121,10 +173,6 @@ const DashboardSuperAdmin = () => {
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600 mb-1">Total Pendapatan</p>
-                                    <div className="flex items-center">
-                                        <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                                        <span className="text-sm text-green-600 font-medium">{stats.revenueGrowth}%</span>
-                                    </div>
                                 </div>
                             </div>
                             <p className="text-3xl font-bold text-gray-900">
@@ -137,10 +185,6 @@ const DashboardSuperAdmin = () => {
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600 mb-1">Total Pengajuan</p>
-                                    <div className="flex items-center">
-                                        <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                                        <span className="text-sm text-green-600 font-medium">{stats.visitsGrowth}%</span>
-                                    </div>
                                 </div>
                             </div>
                             <p className="text-3xl font-bold text-gray-900">{stats.totalApply}</p>
@@ -151,10 +195,6 @@ const DashboardSuperAdmin = () => {
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600 mb-1">Total Pemilik Venue</p>
-                                    <div className="flex items-center">
-                                        <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                                        <span className="text-sm text-green-600 font-medium">{stats.reservationsGrowth}%</span>
-                                    </div>
                                 </div>
                             </div>
                             <p className="text-3xl font-bold text-gray-900">{stats.totalVenueOwner}</p>
@@ -176,7 +216,7 @@ const DashboardSuperAdmin = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recentApply.map((apply, index) => (
+                                    {filteredRecentApply.map((apply, index) => (
                                         <tr key={apply.id} className={`border-b border-gray-100 text-center hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                                             <td className="py-4 px-4 font-medium text-gray-900">{apply.id}</td>
                                             <td className="py-4 px-4 text-gray-700">{apply.customer}</td>

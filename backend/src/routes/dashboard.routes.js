@@ -149,5 +149,43 @@ router.get('/owner/stats', authorize, async (req, res) => {
   }
 });
 
+// GET /api/v1/dashboard/superadmin/stats
+router.get('/superadmin/stats', authorize, async (req, res) => {
+  try {
+    // Total revenue: sum all field prices from bookings with CONFIRMED/COMPLETED/PAID
+    const bookings = await Booking.find({ status: { $in: ['CONFIRMED', 'COMPLETED', 'PAID'] } }).populate({ path: 'field_id', select: 'price' });
+    let totalRevenue = 0;
+    bookings.forEach(b => {
+      if (Array.isArray(b.field_id)) {
+        b.field_id.forEach(field => {
+          if (field && typeof field.price === 'number') totalRevenue += field.price;
+        });
+      } else if (b.field_id && typeof b.field_id.price === 'number') {
+        totalRevenue += b.field_id.price;
+      }
+    });
+    // Total apply: count all partnership requests
+    const totalApply = await PartnerRequest.countDocuments();
+    // Total venue owner: count all users with role 'owner' (or count unique partnerReq.user_id with status approved)
+    const totalVenueOwner = await PartnerRequest.countDocuments({ status: 'approved' });
+    // Dummy growths
+    const revenueGrowth = 100;
+    const visitsGrowth = 80;
+    const reservationsGrowth = 10;
+    res.json({
+      stats: {
+        totalRevenue,
+        totalApply,
+        totalVenueOwner,
+        revenueGrowth,
+        visitsGrowth,
+        reservationsGrowth
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch superadmin stats', error: err.message });
+  }
+});
+
 // Export the router to be used in the main app
 export default router;

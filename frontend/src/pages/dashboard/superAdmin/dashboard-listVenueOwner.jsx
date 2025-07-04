@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,63 +20,137 @@ const DashboardListOwnerVenue = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [applyDetail, setApplyDetail] = useState(null);
     const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+    const [venueOwner, setvenueOwner] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // untuk perubahan status
-    const [status, setStatus] = useState('Active');
+    useEffect(() => {
+        const fetchOwners = async () => {
+            setLoading(true);
+            setError(null);
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch('http://localhost:3000/api/v1/partnership', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (res.ok && data.success && Array.isArray(data.data)) {
+                    // Only show approved owners
+                    // Fetch venue status for each owner
+                    const owners = await Promise.all(data.data.filter(req => req.status === 'approved').map(async req => {
+                        let venueId = null;
+                        let venueStatus = 'Active';
+                        try {
+                            const venueRes = await fetch(`http://localhost:3000/api/v1/partnership/${req._id}/venue`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const venueData = await venueRes.json();
+                            if (venueRes.ok && venueData.success && venueData.data) {
+                                venueId = venueData.data._id;
+                                venueStatus = venueData.data.status === 'banned' ? 'Banned' : 'Active';
+                            }
+                        } catch {}
+                        return {
+                            id: req._id,
+                            customer: req.namaPemilik,
+                            venueName: req.namaVenue,
+                            status: venueStatus,
+                            imageUrl: req.fotoVenue ? `/uploads/${req.fotoVenue}` : '/venue/default.jpg',
+                            partnerReqId: req._id,
+                            venueId
+                        };
+                    }));
+                    setvenueOwner(owners);
+                }
+            } catch (err) {
+                setError('Gagal mengambil data dari server');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchOwners();
+    }, []);
 
-    const toggleStatus = (id) => {
-    const updatedUsers = venueOwner.map(user =>
-      user.id === id
-        ? { ...user, status: user.status === 'Active' ? 'Banned' : 'Active' }
-        : user
+    const toggleStatus = async (id) => {
+        const owner = venueOwner.find(user => user.id === id);
+        if (!owner) return;
+        // Fetch venueId for this owner
+        // You may need to fetch the venueId from backend if not available in owner object
+        let venueId = owner.venueId;
+        if (!venueId) {
+            // Try to fetch venue by partner_req_id
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`http://localhost:3000/api/v1/partnership/${id}/venue`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (res.ok && data.success && data.data && data.data._id) {
+                    venueId = data.data._id;
+                } else {
+                    alert('Venue tidak ditemukan');
+                    return;
+                }
+            } catch (err) {
+                alert('Gagal mengambil venue');
+                return;
+            }
+        }
+        // Toggle between 'active' and 'banned' for venue
+        const newStatus = owner.status === 'Active' ? 'banned' : 'active';
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`http://localhost:3000/api/v1/partnership/venue/${venueId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setvenueOwner(prev => prev.map(user =>
+                    user.id === id ? { ...user, status: newStatus === 'active' ? 'Active' : 'Banned', venueId } : user
+                ));
+            } else {
+                alert(data.message || 'Gagal update status venue');
+            }
+        } catch (err) {
+            alert('Gagal update status venue');
+        }
+    };
+
+    const filteredVenueOwner = venueOwner.filter(owner =>
+        (owner.customer || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (owner.venueName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (owner.status || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
-    setvenueOwner(updatedUsers);
-  };
 
-    const [venueOwner, setvenueOwner] = useState([
-        {
-          id: '1',
-          customer: 'Pham Hanni',
-          venueName: 'Vlocity Arena',
-          status: 'Active',
-          imageUrl: '/venue/badmin1.jpg'
-        },
-        {
-          id: '2',
-          customer: 'Heru Budi',
-          venueName: 'ClinciG Arena',
-          status: 'Banned',
-          imageUrl: '/venue/futsal1.jpg'
-        },
-        {
-          id: '3',
-          customer: 'Jaenap',
-          venueName: 'Vlocity Arena',
-          status: 'Banned',
-          imageUrl: '/venue/badmin1.jpg'
-        },
-        {
-          id: '4',
-          customer: 'Cincai',
-          venueName: 'ClinciG Arena',
-          status: 'Active',
-          imageUrl: '/venue/futsal1.jpg'
-        },
-        {
-          id: '5',
-          customer: 'Jeki Cen',
-          venueName: 'Vlocity Arena',
-          status: 'Active',
-          imageUrl: '/venue/badmin1.jpg'
-        },
-        {
-          id: '6',
-          customer: 'Bas G',
-          venueName: 'ClinciG Arena',
-          status: 'Banned',
-          imageUrl: '/venue/futsal1.jpg'
-        },
-    ]);
+    if (loading) {
+        return (
+            <div className="flex min-h-screen bg-gray-100 font-sans relative">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto"></div>
+                        <p className="mt-4 text-lg text-gray-600">Loading venue owners...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    if (error) {
+        return (
+            <div className="flex min-h-screen bg-gray-100 font-sans relative">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <p className="text-lg text-red-600">{error}</p>
+                        <Button onClick={() => window.location.reload()} className="mt-4 bg-green-500 hover:bg-green-700">Try Again</Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return(
         <div className="flex min-h-screen bg-gray-100 font-sans relative">
@@ -137,7 +211,7 @@ const DashboardListOwnerVenue = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {venueOwner.map((owner, index) => (
+                            {filteredVenueOwner.map((owner, index) => (
                             <tr
                                 key={owner.id}
                                 className={`border-b text-center ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
