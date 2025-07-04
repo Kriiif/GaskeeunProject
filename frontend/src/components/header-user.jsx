@@ -17,7 +17,7 @@ import {
 // Header kini menerima props cartItemCount dan onCartClick
 const HeaderUser = ({ cartItemCount, onCartClick }) => {
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
 
     const handleLogout = () => {
         logout();
@@ -62,13 +62,14 @@ const HeaderUser = ({ cartItemCount, onCartClick }) => {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => navigate('/profile-pages')}>
                             <span>Profil</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/history-user')}>
+                        </DropdownMenuItem>                        <DropdownMenuItem onClick={() => navigate('/history-user')}>
                             <span>Riwayat Reservasi</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/dashboard-main')} >
-                            <span>Dashboard Pemilik Venue</span>
-                        </DropdownMenuItem>
+                        {user?.role === 'owner' && (
+                            <DropdownMenuItem onClick={() => navigate('/dashboard-main')} >
+                                <span>Dashboard Pemilik Venue</span>
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout}>
                             <span>Keluar</span>

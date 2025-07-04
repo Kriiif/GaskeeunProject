@@ -6,7 +6,7 @@ import useAuth from '@/hooks/useAuth';
 
 const CustomDropdownOwner = () => {   
     const navigate = useNavigate(); // Initialize useNavigate hook
-    const { logout } = useAuth(); // Import logout function from your auth context or hook
+    const { logout, user } = useAuth(); // Import logout function and user from your auth context or hook
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -25,12 +25,11 @@ const CustomDropdownOwner = () => {
 
     return (
         <div className="p-4 border-t border-gray-200 text-center">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+            <DropdownMenu>                <DropdownMenuTrigger asChild>
                     <div className="cursor-pointer hover:bg-gray-50 p-2 rounded-md transition-colors duration-200">
                         <User className="h-12 w-12 mx-auto mb-2 text-gray-700" />
-                        <p className="font-semibold text-gray-800">Uchiha Asep</p>
-                        <p className="text-sm text-gray-500">asepAsoy@gmail.com</p>
+                        <p className="font-semibold text-gray-800">{user?.name || 'User'}</p>
+                        <p className="text-sm text-gray-500">{user?.email || 'user@example.com'}</p>
                         <div className="mt-2 text-gray-600">
                             <List className="h-5 w-5 inline-block" />
                         </div>
