@@ -42,6 +42,7 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/venues', venueRoutes);
 app.use('/api/v1/cart', cartRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 // Middleware untuk error handling
 app.use(errorMiddleware)

@@ -10,7 +10,7 @@ import PartnerRequest from '../models/partner_req.model.js';
 const router = express.Router();
 
 // GET /api/v1/dashboard/owner/recent-orders
-router.get('/recent-orders', authorize, async (req, res) => {
+router.get('/owner/recent-orders', authorize, async (req, res) => {
   try {
     const userId = req.user._id;
     // Cari partner request yang sudah approved untuk user ini
@@ -41,23 +41,33 @@ router.get('/recent-orders', authorize, async (req, res) => {
       .limit(10)
       .populate({ path: 'user_id', select: 'name' })
       .populate({ path: 'field_id', select: 'name price venue_id', populate: { path: 'venue_id', select: 'partner_req_id' } })
-      .populate({ path: 'venue_id', select: 'partner_req_id' });
-
-    // Untuk setiap booking, ambil nama venue dari partner_req
+      .populate({ path: 'venue_id', select: 'partner_req_id' });    // Untuk setiap booking, ambil nama venue dari partner_req
     const orders = await Promise.all(bookings.map(async (b) => {
       let venueName = '-';
-      let partnerReqId = b.venue_id?.partner_req_id || b.field_id?.venue_id?.partner_req_id;
+      let fieldName = '-';
+      let fieldPrice = null;
+      
+      // Handle field_id as array
+      const firstField = Array.isArray(b.field_id) ? b.field_id[0] : b.field_id;
+      
+      let partnerReqId = b.venue_id?.partner_req_id || firstField?.venue_id?.partner_req_id;
       if (partnerReqId) {
         // Cari partner request untuk dapatkan namaVenue
         const partnerReq = await PartnerRequest.findById(partnerReqId);
         if (partnerReq) venueName = partnerReq.namaVenue;
       }
+      
+      if (firstField) {
+        fieldName = firstField.name || '-';
+        fieldPrice = firstField.price || null;
+      }
+      
       return {
         id: b.order_id,
         customer: b.user_id?.name || '-',
         venue: venueName,
-        field: b.field_id?.name || '-',
-        price: b.field_id?.price || null,
+        field: fieldName,
+        price: fieldPrice,
         date: b.booking_date,
         session: b.booking_time,
         status: b.status
@@ -70,31 +80,58 @@ router.get('/recent-orders', authorize, async (req, res) => {
 });
 
 // GET /api/v1/dashboard/owner/stats
-router.get('/stats', authorize, async (req, res) => {
+router.get('/owner/stats', authorize, async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log('Fetching stats for user:', userId);
+    
     // Cari partner request yang sudah approved untuk user ini
     const partnerReq = await PartnerRequest.findOne({ user_id: userId, status: 'approved' });
+    console.log('Partner request found:', partnerReq);
+    
     if (!partnerReq) {
+      console.log('No approved partner request found');
       return res.json({ stats: { totalRevenue: 0, totalReservations: 0, revenueGrowth: 0, reservationsGrowth: 0 } });
     }
+    
     // Cari venue yang partner_req_id-nya sama dengan partnerReq._id
     const venues = await Venue.find({ partner_req_id: partnerReq._id });
+    console.log('Venues found:', venues);
+    
     if (!venues.length) {
+      console.log('No venues found for partner request');
       return res.json({ stats: { totalRevenue: 0, totalReservations: 0, revenueGrowth: 0, reservationsGrowth: 0 } });
     }
+    
     const venueIds = venues.map(v => v._id);
-    // Ambil semua booking untuk venue ini
-    const bookings = await Booking.find({ venue_id: { $in: venueIds }, status: { $in: ['CONFIRMED', 'COMPLETED'] } })
+    console.log('Venue IDs:', venueIds);
+    
+    // Ambil semua booking untuk venue ini dengan status yang lebih lengkap
+    const bookings = await Booking.find({ venue_id: { $in: venueIds }, status: { $in: ['CONFIRMED', 'COMPLETED', 'PAID'] } })
       .populate({ path: 'field_id', select: 'price' });
+    console.log('Bookings found:', bookings.length);
+    console.log('Sample booking:', bookings[0]);
+    
     // Hitung total pendapatan dari price field
     let totalRevenue = 0;
     bookings.forEach(b => {
-      if (b.field_id && typeof b.field_id.price === 'number') {
+      console.log('Processing booking:', b._id, 'field_id:', b.field_id);
+      // Handle field_id as array
+      if (Array.isArray(b.field_id)) {
+        b.field_id.forEach(field => {
+          if (field && typeof field.price === 'number') {
+            totalRevenue += field.price;
+            console.log('Added price from array field:', field.price);
+          }
+        });
+      } else if (b.field_id && typeof b.field_id.price === 'number') {
         totalRevenue += b.field_id.price;
+        console.log('Added price from single field:', b.field_id.price);
       }
-    });
-    const totalReservations = bookings.length;
+    });    const totalReservations = bookings.length;
+    console.log('Total revenue calculated:', totalRevenue);
+    console.log('Total reservations:', totalReservations);
+    
     // Dummy growth calculation
     const revenueGrowth = 100;
     const reservationsGrowth = 10;
@@ -107,6 +144,7 @@ router.get('/stats', authorize, async (req, res) => {
       }
     });
   } catch (err) {
+    console.error('Error fetching stats:', err);
     res.status(500).json({ message: 'Failed to fetch stats', error: err.message });
   }
 });
