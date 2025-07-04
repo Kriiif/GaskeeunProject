@@ -199,9 +199,6 @@ export default function Dashboard() {
                     e.target.src = '/venue/default.jpg';
                   }}
                 />                <CardHeader className="px-4 pb-0">
-                  <CardDescription className="text-sm text-gray-500 mb-1">
-                    {venue.category}
-                  </CardDescription>
                   <CardTitle className="text-xl font-semibold text-gray-800 leading-tight">
                     {venue.name}
                   </CardTitle>
